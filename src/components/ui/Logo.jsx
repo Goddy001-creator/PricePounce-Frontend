@@ -56,7 +56,7 @@ function Logo({ compact = false, light = false }) {
           <span className={light ? "brand-price light" : "brand-price"}>
             Price
           </span>
-          <span className="brand-pulse">Pulse</span>
+          <span className="brand-pulse">Pounce</span>
         </div>
       )}
     </div>

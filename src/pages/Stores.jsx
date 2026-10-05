@@ -49,7 +49,7 @@ function Stores() {
         <div>
           <h1>Stores</h1>
           <p>
-            View the online stores currently tracked by PricePulse.
+            View the online stores currently tracked by PricePounce.
           </p>
         </div>
 
@@ -71,7 +71,7 @@ function Stores() {
         <div>
           <strong>2 stores tracked</strong>
           <span>
-            PricePulse currently collects product data from Jumia and Konga.
+            PricePounce currently collects product data from Jumia and Konga.
           </span>
         </div>
       </div>

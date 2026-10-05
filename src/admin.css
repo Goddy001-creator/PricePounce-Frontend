@@ -1,0 +1,371 @@
+/* ADMIN */
+
+.admin-section {
+  margin-top: 18px;
+}
+
+.admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.admin-toolbar .input {
+  width: auto;
+  min-width: 140px;
+}
+
+.admin-search {
+  position: relative;
+  flex: 1 1 240px;
+}
+
+.admin-search svg {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: var(--text-secondary);
+}
+
+.admin-search .input {
+  width: 100%;
+  padding-left: 36px;
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  min-width: 820px;
+}
+
+.admin-table-small {
+  min-width: 420px;
+}
+
+.admin-row {
+  display: grid;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  color: inherit;
+  font-size: 12px;
+}
+
+.admin-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-row.head {
+  border-bottom: 0;
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+}
+
+.admin-row-users {
+  grid-template-columns:
+    minmax(200px, 2.2fr)
+    80px
+    100px
+    150px
+    110px
+    110px;
+}
+
+.admin-row-audit {
+  grid-template-columns:
+    150px
+    minmax(130px, 1fr)
+    minmax(130px, 1fr)
+    minmax(130px, 1fr)
+    110px
+    minmax(140px, 1.4fr);
+}
+
+.admin-row-3 {
+  grid-template-columns: 1.4fr 1fr 1.4fr;
+}
+
+.admin-row-link {
+  transition: background-color 160ms ease;
+}
+
+.admin-row-link:hover {
+  background: var(--background);
+}
+
+.admin-user {
+  min-width: 0;
+}
+
+.admin-user strong,
+.admin-user small {
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.admin-user small {
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.admin-ellipsis {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.admin-security {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.admin-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.status-badge,
+.mini-badge {
+  display: inline-block;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mini-badge {
+  margin-left: 8px;
+}
+
+.admin-security .mini-badge {
+  margin-left: 0;
+}
+
+.status-badge.active,
+.mini-badge.ok {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--success);
+}
+
+.status-badge.suspended {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--danger);
+}
+
+.mini-badge.warn {
+  background: rgba(245, 158, 11, 0.14);
+  color: #b45309;
+}
+
+.mini-badge.admin {
+  background: rgba(92, 58, 237, 0.12);
+  color: var(--primary);
+}
+
+/* User detail */
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.admin-detail-side {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.admin-detail-side .admin-section {
+  margin-top: 0;
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.admin-profile h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.admin-profile p {
+  margin: 4px 0 10px;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.admin-avatar {
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  font-size: 22px;
+}
+
+.admin-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-badges .mini-badge {
+  margin-left: 0;
+}
+
+.admin-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+
+.admin-info span,
+.admin-info strong {
+  display: block;
+}
+
+.admin-info span {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.admin-info strong {
+  margin-top: 4px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.admin-actions .input {
+  width: auto;
+  min-width: 130px;
+}
+
+.admin-note {
+  margin: 14px 0 0;
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  border-radius: 9px;
+  background: transparent;
+  color: var(--danger);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.danger-button:hover:not(:disabled) {
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.danger-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.danger-zone {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.activity-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.activity-list li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.activity-list li:last-child {
+  border-bottom: 0;
+}
+
+.activity-list strong {
+  display: block;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.activity-list small {
+  display: block;
+  margin-top: 3px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.activity-list span {
+  color: var(--text-secondary);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .admin-detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .admin-toolbar .input {
+    width: 100%;
+  }
+
+  .admin-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-footer {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .admin-actions .input,
+  .admin-actions .primary-button,
+  .admin-actions .secondary-button,
+  .admin-actions .danger-button {
+    flex: 1 1 100%;
+  }
+}

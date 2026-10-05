@@ -1,5 +1,6 @@
 import {
   ArrowLeft,
+  Bookmark,
   ExternalLink,
   Package,
   Star,
@@ -8,7 +9,6 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
-  Link,
   useNavigate,
   useParams,
 } from "react-router-dom";
@@ -22,6 +22,9 @@ import {
   YAxis,
 } from "recharts";
 
+import { useAuth } from "../context/AuthContext";
+import { useUpgrade } from "../context/UpgradeContext";
+import { useWatchlist } from "../context/WatchlistContext";
 import {
   getPriceHistory,
   getProduct,
@@ -56,12 +59,18 @@ function formatDate(value) {
 function ProductDetails() {
   const { productId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { openUpgrade } = useUpgrade();
+  const { isWatching, toggle } = useWatchlist();
 
   const [product, setProduct] = useState(null);
   const [history, setHistory] = useState([]);
+  const [historyLimited, setHistoryLimited] = useState(false);
+  const [historyDays, setHistoryDays] = useState(null);
   const [loading, setLoading] = useState(true);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState("");
+  const [watchError, setWatchError] = useState("");
 
   useEffect(() => {
     async function loadProduct() {
@@ -97,6 +106,8 @@ function ProductDetails() {
         const data = await getPriceHistory(productId);
 
         setHistory(data.history || []);
+        setHistoryLimited(Boolean(data.history_limited));
+        setHistoryDays(data.history_days ?? null);
       } catch (requestError) {
         console.error(
           "Price history loading failed:",
@@ -104,6 +115,7 @@ function ProductDetails() {
         );
 
         setHistory([]);
+        setHistoryLimited(false);
       } finally {
         setHistoryLoading(false);
       }
@@ -112,14 +124,32 @@ function ProductDetails() {
     loadHistory();
   }, [productId]);
 
+  async function handleWatchToggle() {
+    setWatchError("");
+
+    try {
+      await toggle(Number(product.id));
+    } catch (requestError) {
+      const data = requestError.response?.data;
+
+      if (data?.code === "watchlist_limit" && user?.plan !== "pro") {
+        openUpgrade(data.error);
+      } else {
+        setWatchError(
+          data?.error ||
+            "Couldn't update your watchlist. Please try again."
+        );
+      }
+    }
+  }
+
   const chartData = history
     .map((item) => ({
       date: formatDate(
         item.checked_at || item.date
       ),
       price: Number(item.price),
-    }))
-    .reverse();
+    }));
 
   if (loading) {
     return (
@@ -154,6 +184,8 @@ function ProductDetails() {
       </div>
     );
   }
+
+  const watching = isWatching(Number(product.id));
 
   return (
     <div className="page">
@@ -250,16 +282,35 @@ function ProductDetails() {
             </div>
           </div>
 
-          {product.product_url && (
-            <a
-              className="primary-button product-external-link"
-              href={product.product_url}
-              target="_blank"
-              rel="noreferrer"
+          <div className="product-actions">
+            {product.product_url && (
+              <a
+                className="primary-button product-external-link"
+                href={product.product_url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <ExternalLink size={17} />
+                View on {product.store_name || "Store"}
+              </a>
+            )}
+
+            <button
+              type="button"
+              className={`watch-button ${watching ? "active" : ""}`}
+              onClick={handleWatchToggle}
+              aria-pressed={watching}
             >
-              <ExternalLink size={17} />
-              View on {product.store_name || "Store"}
-            </a>
+              <Bookmark
+                size={17}
+                fill={watching ? "currentColor" : "none"}
+              />
+              {watching ? "Watching" : "Add to Watchlist"}
+            </button>
+          </div>
+
+          {watchError && (
+            <span className="field-error">{watchError}</span>
           )}
         </div>
       </section>
@@ -273,6 +324,24 @@ function ProductDetails() {
             </p>
           </div>
         </div>
+
+        {historyLimited && (
+          <div className="history-limit-note">
+            <span>
+              The Free plan shows the last {historyDays} days of price history.
+            </span>
+
+            <button
+              type="button"
+              className="link-button"
+              onClick={() =>
+                openUpgrade("Unlock the full price history of this product.")
+              }
+            >
+              See full history with Pro
+            </button>
+          </div>
+        )}
 
         {historyLoading ? (
           <div className="loading-state">
@@ -340,7 +409,7 @@ function ProductDetails() {
             <h3>No price history yet</h3>
 
             <p>
-              Price history will appear after PricePulse
+              Price history will appear after PricePounce
               records additional price checks for this product.
             </p>
           </div>
@@ -367,7 +436,7 @@ function ProductDetails() {
             {history.map((item, index) => (
               <div
                 className="history-row"
-                key={`${item.checked_at}-${index}`}
+                key={`${item.checked_at || item.date}-${index}`}
               >
                 <span>
                   {formatDate(

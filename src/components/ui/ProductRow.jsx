@@ -9,6 +9,10 @@ function formatPrice(value) {
 }
 
 function ProductRow({ product }) {
+  const hasDiscount =
+    product.discount_percent !== null &&
+    product.discount_percent !== undefined;
+
   return (
     <Link
       to={`/products/${product.id}`}
@@ -29,6 +33,18 @@ function ProductRow({ product }) {
         <div>
           <strong>{product.product_name}</strong>
           <small>{product.store_name}</small>
+
+          <div className="product-mobile-meta">
+            <span className="mobile-price">
+              {formatPrice(product.current_price)}
+            </span>
+
+            {hasDiscount && (
+              <span className="mobile-discount">
+                {product.discount_percent}%
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -41,8 +57,7 @@ function ProductRow({ product }) {
       </span>
 
       <span className="discount">
-        {product.discount_percent !== null &&
-        product.discount_percent !== undefined
+        {hasDiscount
           ? `${product.discount_percent}%`
           : "—"}
       </span>

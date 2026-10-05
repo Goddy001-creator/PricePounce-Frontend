@@ -13,10 +13,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import ProductRow from "../components/ui/ProductRow";
+import { useAuth } from "../context/AuthContext";
 import { getProductsPage } from "../services/api";
 
 const STORE_OPTIONS = ["All Stores", "Jumia", "Konga"];
 const PAGE_SIZE = 10;
+
+const SORT_OPTIONS = [
+  { value: "updated", label: "Recently updated" },
+  { value: "name", label: "Name" },
+  { value: "price", label: "Price" },
+  { value: "discount", label: "Discount" },
+  { value: "rating", label: "Rating" },
+];
 
 // Builds lists like [1, 2, 3] or [1, "start", 4, 5, 6, "end", 13]
 function getPageItems(current, total) {
@@ -62,6 +71,7 @@ function SortHeader({ label, sortKey, sort, order, onSort }) {
 }
 
 function Products() {
+  const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const urlQuery = (searchParams.get("q") || "").trim();
 
@@ -70,10 +80,13 @@ function Products() {
   const [totalPages, setTotalPages] = useState(1);
 
   const [searchInput, setSearchInput] = useState(urlQuery);
-  const [storeFilter, setStoreFilter] = useState("All Stores");
+  const [storeFilter, setStoreFilter] = useState(
+    user?.settings?.default_store || "All Stores"
+  );
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("updated");
   const [order, setOrder] = useState("desc");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -81,6 +94,8 @@ function Products() {
   const requestRef = useRef(0);
 
   const filtersActive = Boolean(urlQuery) || storeFilter !== "All Stores";
+  const sheetActive =
+    storeFilter !== "All Stores" || sort !== "updated" || order !== "desc";
 
   const loadProducts = useCallback(async () => {
     const requestId = requestRef.current + 1;
@@ -172,6 +187,24 @@ function Products() {
     setPage(1);
   }
 
+  function handleSortSelect(value) {
+    setSort(value);
+    setOrder(value === "name" ? "asc" : "desc");
+    setPage(1);
+  }
+
+  function handleOrderSelect(value) {
+    setOrder(value);
+    setPage(1);
+  }
+
+  function resetSheetFilters() {
+    setStoreFilter("All Stores");
+    setSort("updated");
+    setOrder("desc");
+    setPage(1);
+  }
+
   function goToPage(nextPage) {
     setPage(Math.min(Math.max(1, nextPage), totalPages));
   }
@@ -185,7 +218,7 @@ function Products() {
         <div>
           <h1>Products</h1>
           <p>
-            Browse and compare products currently tracked by PricePulse.
+            Browse and compare products currently tracked by PricePounce.
           </p>
         </div>
 
@@ -245,7 +278,113 @@ function Products() {
             ))}
           </select>
         </div>
+
+        <button
+          type="button"
+          className={`filter-button ${sheetActive ? "active" : ""}`}
+          onClick={() => setFiltersOpen(true)}
+          aria-label="Open filters"
+        >
+          <SlidersHorizontal size={19} />
+        </button>
       </div>
+
+      {filtersOpen && (
+        <>
+          <div
+            className="filter-sheet-overlay"
+            onClick={() => setFiltersOpen(false)}
+          />
+
+          <div
+            className="filter-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Filters"
+          >
+            <div className="filter-sheet-header">
+              <h2>Filters</h2>
+
+              <button
+                type="button"
+                className="icon-button"
+                onClick={() => setFiltersOpen(false)}
+                aria-label="Close filters"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <label className="sheet-field">
+              <span>Store</span>
+              <select
+                value={storeFilter}
+                onChange={(event) => handleStoreChange(event.target.value)}
+              >
+                {STORE_OPTIONS.map((store) => (
+                  <option key={store} value={store}>
+                    {store}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="sheet-field">
+              <span>Sort by</span>
+              <select
+                value={sort}
+                onChange={(event) => handleSortSelect(event.target.value)}
+              >
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="sheet-field">
+              <span>Order</span>
+
+              <div className="segmented">
+                <button
+                  type="button"
+                  className={order === "asc" ? "active" : ""}
+                  onClick={() => handleOrderSelect("asc")}
+                >
+                  Ascending
+                </button>
+
+                <button
+                  type="button"
+                  className={order === "desc" ? "active" : ""}
+                  onClick={() => handleOrderSelect("desc")}
+                >
+                  Descending
+                </button>
+              </div>
+            </div>
+
+            <div className="sheet-actions">
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={resetSheetFilters}
+              >
+                Reset
+              </button>
+
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() => setFiltersOpen(false)}
+              >
+                Show results
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       {filtersActive && (
         <div className="active-filters">
@@ -290,7 +429,7 @@ function Products() {
         <div className="content-card products-loading-card">
           <RefreshCw size={28} className="loading-icon" />
           <h3>Loading products...</h3>
-          <p>Fetching the latest product data from PricePulse.</p>
+          <p>Fetching the latest product data from PricePounce.</p>
         </div>
       ) : error ? (
         <div className="content-card products-error-card">
@@ -318,7 +457,7 @@ function Products() {
           <p>
             {filtersActive
               ? "Try changing your search or store filter."
-              : "PricePulse has not loaded any products yet."}
+              : "PricePounce has not loaded any products yet."}
           </p>
 
           {filtersActive && (

@@ -1,12 +1,40 @@
-import { Bell, CircleHelp, Moon, Search, Settings as SettingsIcon, Sun } from "lucide-react";
+import {
+  Bell,
+  CircleHelp,
+  LogOut,
+  Menu,
+  Moon,
+  Search,
+  Settings as SettingsIcon,
+  Sun,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
+import { useAuth } from "../../context/AuthContext";
 import { useNotifications } from "../../context/NotificationsContext";
 import { useTheme } from "../../context/ThemeContext";
 
-function Header() {
-  const { isDark, toggleTheme } = useTheme();
+const PAGE_TITLES = {
+  "/dashboard": "Dashboard",
+  "/products": "Products",
+  "/watchlist": "Watchlist",
+  "/analytics": "Analytics",
+  "/stores": "Stores",
+  "/alerts": "Alerts",
+  "/notifications": "Notifications",
+  "/settings": "Settings",
+  "/about": "About",
+};
+
+function getPageTitle(pathname) {
+  if (pathname.startsWith("/products/")) return "Product Details";
+  return PAGE_TITLES[pathname] || "PricePounce";
+}
+
+function Header({ onMenuClick = () => {} }) {
+  const { isDark, setTheme } = useTheme();
+  const { user, logout, updateSettings } = useAuth();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
@@ -61,8 +89,31 @@ function Header() {
     searchRef.current?.blur();
   }
 
+  function handleThemeToggle() {
+    const next = isDark ? "light" : "dark";
+
+    setTheme(next);
+
+    updateSettings({ theme: next }).catch((error) => {
+      console.error("Saving theme failed:", error);
+    });
+  }
+
+  const firstName = (user?.name || "").split(" ")[0];
+
   return (
     <header className="topbar">
+      <button
+        type="button"
+        className="icon-button menu-button"
+        onClick={onMenuClick}
+        aria-label="Open menu"
+      >
+        <Menu size={22} />
+      </button>
+
+      <span className="topbar-title">{getPageTitle(location.pathname)}</span>
+
       <form className="header-search" role="search" onSubmit={handleSearchSubmit}>
         <Search size={19} />
         <input
@@ -92,8 +143,8 @@ function Header() {
 
         <button
           type="button"
-          className="icon-button"
-          onClick={toggleTheme}
+          className="icon-button theme-toggle"
+          onClick={handleThemeToggle}
           aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
           title={isDark ? "Switch to light mode" : "Switch to dark mode"}
         >
@@ -108,9 +159,11 @@ function Header() {
             aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
-            <div className="avatar">A</div>
+            <div className="avatar">
+              {(user?.name || "?").charAt(0).toUpperCase()}
+            </div>
             <div>
-              <strong>Emem</strong>
+              <strong>{firstName}</strong>
               <small>Account</small>
             </div>
           </button>
@@ -118,8 +171,8 @@ function Header() {
           {menuOpen && (
             <div className="account-dropdown" role="menu">
               <div className="account-dropdown-header">
-                <strong>Emem</strong>
-                <span>PricePulse account</span>
+                <strong>{user?.name}</strong>
+                <span>{user?.email}</span>
               </div>
 
               <Link to="/settings" role="menuitem">
@@ -136,6 +189,16 @@ function Header() {
                 <CircleHelp size={16} />
                 About
               </Link>
+
+              <button
+                type="button"
+                className="account-dropdown-button"
+                role="menuitem"
+                onClick={logout}
+              >
+                <LogOut size={16} />
+                Log out
+              </button>
             </div>
           )}
         </div>

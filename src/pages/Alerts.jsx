@@ -13,7 +13,7 @@ function Alerts() {
         <div>
           <h1>Alerts</h1>
           <p>
-            Monitor price-drop alerts detected by PricePulse.
+            Monitor price-drop alerts detected by PricePounce.
           </p>
         </div>
       </div>
@@ -58,7 +58,7 @@ function Alerts() {
           <div>
             <h2>Price Drop Alerts</h2>
             <p>
-              PricePulse detects when a tracked product's price decreases.
+              PricePounce detects when a tracked product's price decreases.
             </p>
           </div>
         </div>
@@ -94,7 +94,7 @@ function Alerts() {
 
             <div>
               <strong>Email Notifications</strong>
-              <span>Planned for a future PricePulse version.</span>
+              <span>Planned for a future PricePounce version.</span>
             </div>
 
             <span className="planned-badge">Planned</span>
@@ -107,7 +107,7 @@ function Alerts() {
 
             <div>
               <strong>WhatsApp Notifications</strong>
-              <span>Planned for a future PricePulse version.</span>
+              <span>Planned for a future PricePounce version.</span>
             </div>
 
             <span className="planned-badge">Planned</span>

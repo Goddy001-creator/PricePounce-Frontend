@@ -3,9 +3,42 @@ import axios from "axios";
 const api = axios.create({
   baseURL:
     import.meta.env.VITE_API_BASE_URL ||
-    "http://127.0.0.1:5000/api",
+    "http://localhost:5000/api",
   timeout: 30000,
+  withCredentials: true,
 });
+
+// CSRF token lives in memory only (never in storage)
+let csrfToken = "";
+
+export function setCsrfToken(token) {
+  csrfToken = token || "";
+}
+
+api.interceptors.request.use((config) => {
+  const method = (config.method || "get").toLowerCase();
+
+  if (!["get", "head", "options"].includes(method) && csrfToken) {
+    config.headers["X-CSRF-Token"] = csrfToken;
+  }
+
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const url = error.config?.url || "";
+
+    if (error.response?.status === 401 && !url.startsWith("/auth/")) {
+      window.dispatchEvent(new Event("pricepounce:unauthorized"));
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+/* ---------- products and analytics ---------- */
 
 export async function getProducts() {
   const response = await api.get("/products");
@@ -102,6 +135,95 @@ export async function getLastUpdate() {
 export async function getPriceTrends(days = 7) {
   const response = await api.get("/analytics/price-trends", {
     params: { days },
+  });
+
+  return response.data;
+}
+
+/* ---------- watchlist ---------- */
+
+export async function getWatchlist() {
+  const response = await api.get("/watchlist");
+  return response.data;
+}
+
+export async function getWatchlistIds() {
+  const response = await api.get("/watchlist/ids");
+  return response.data;
+}
+
+export async function addToWatchlist(productId) {
+  const response = await api.post(`/watchlist/${productId}`);
+  return response.data;
+}
+
+export async function removeFromWatchlist(productId) {
+  const response = await api.delete(`/watchlist/${productId}`);
+  return response.data;
+}
+
+/* ---------- authentication ---------- */
+
+export async function signup(payload) {
+  const response = await api.post("/auth/signup", payload);
+  return response.data;
+}
+
+export async function login(email, password) {
+  const response = await api.post("/auth/login", { email, password });
+  return response.data;
+}
+
+export async function logout() {
+  const response = await api.post("/auth/logout");
+  return response.data;
+}
+
+export async function getMe() {
+  const response = await api.get("/auth/me");
+  return response.data;
+}
+
+export async function verifyEmail(token) {
+  const response = await api.post("/auth/verify-email", { token });
+  return response.data;
+}
+
+export async function resendVerification(email) {
+  const response = await api.post("/auth/resend-verification", { email });
+  return response.data;
+}
+
+export async function forgotPassword(email) {
+  const response = await api.post("/auth/forgot-password", { email });
+  return response.data;
+}
+
+export async function resetPassword(token, password) {
+  const response = await api.post("/auth/reset-password", {
+    token,
+    password,
+  });
+
+  return response.data;
+}
+
+/* ---------- account ---------- */
+
+export async function updateProfile(name) {
+  const response = await api.patch("/account/profile", { name });
+  return response.data;
+}
+
+export async function updateSettings(settings) {
+  const response = await api.patch("/account/settings", settings);
+  return response.data;
+}
+
+export async function changePassword(currentPassword, newPassword) {
+  const response = await api.post("/account/change-password", {
+    current_password: currentPassword,
+    new_password: newPassword,
   });
 
   return response.data;

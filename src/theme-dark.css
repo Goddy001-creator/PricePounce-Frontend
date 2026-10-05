@@ -94,3 +94,21 @@
 [data-theme="dark"] .products-empty-card p {
   color: #cbd5e1;
 }
+
+/* HOVER STATES (dark) */
+
+[data-theme="dark"] .insights-grid .content-card:hover,
+[data-theme="dark"] .store-card:hover,
+[data-theme="dark"] .alert-summary-card:hover,
+[data-theme="dark"] .stats-grid .stat-card:hover {
+  border-color: #334155;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme="dark"] .product-row-link:active {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="dark"] .product-row-link:hover .product-thumbnail {
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+}
