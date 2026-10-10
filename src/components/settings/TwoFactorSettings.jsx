@@ -37,13 +37,15 @@ function TwoFactorSettings() {
     return requestError.response?.data?.error || fallback;
   }
 
-  async function startSetup() {
+  async function startSetup(event) {
+    event.preventDefault();
     setBusy(true);
     setError("");
 
     try {
-      const data = await setupTwoFactor();
+      const data = await setupTwoFactor(password);
       setSetup(data);
+      setPassword("");
       setMode("setup");
     } catch (requestError) {
       setError(messageFrom(requestError, "Couldn't start the setup."));
@@ -131,12 +133,46 @@ function TwoFactorSettings() {
           <button
             type="button"
             className="secondary-button"
-            onClick={startSetup}
-            disabled={busy}
+            onClick={() => reset("confirm-password")}
           >
             Turn on two-factor
           </button>
         </>
+      )}
+
+      {mode === "confirm-password" && (
+        <form onSubmit={startSetup} noValidate>
+          <p className="twofa-text">
+            For your security, enter your password to continue.
+          </p>
+
+          {error && <div className="auth-alert error">{error}</div>}
+
+          <PasswordField
+            label="Password"
+            autoComplete="current-password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+          />
+
+          <div className="twofa-actions">
+            <button
+              type="submit"
+              className="secondary-button"
+              disabled={busy || !password}
+            >
+              {busy ? "Checking..." : "Continue"}
+            </button>
+
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => reset()}
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
       )}
 
       {mode === "setup" && setup && (

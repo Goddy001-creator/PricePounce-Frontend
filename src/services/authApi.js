@@ -9,9 +9,9 @@ export async function loginTwoFactor(mfaToken, code) {
   return response.data;
 }
 
-export async function setupTwoFactor() {
-  const response = await api.post("/security/2fa/setup");
-  return response.data;
+export async function setupTwoFactor(password) {
+  const { data } = await api.post("/auth/security/2fa/setup", { password });
+  return data;
 }
 
 export async function enableTwoFactor(code) {

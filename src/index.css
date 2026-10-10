@@ -3214,3 +3214,153 @@ a:focus-visible {
   background: rgba(239, 68, 68, 0.1);
   color: var(--danger);
 }
+
+/* Desktop sidebar: scroll when the window is short so "Go Pro" and Logout stay reachable */
+@media (min-width: 1025px) {
+  .sidebar {
+    height: 100vh;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  .sidebar-bottom {
+    margin-top: auto;
+    padding-top: 16px;
+  }
+}
+
+/* ----- Category bar ----- */
+
+.category-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 12px;
+  scrollbar-width: thin;
+}
+
+.category-bar.sub {
+  padding-top: 0;
+}
+
+.category-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.category-chip:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.category-chip.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.category-chip small {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.category-bar.sub .category-chip {
+  height: 30px;
+  font-size: 12px;
+}
+
+.products-filter select + select {
+  margin-left: 8px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+}
+
+/* ----- Watchlist target price ----- */
+
+.watchlist-item {
+  border-bottom: 1px solid var(--border);
+}
+
+.watchlist-item .watchlist-row {
+  border-bottom: none;
+}
+
+.target-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 0 16px 14px 78px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.target-price label {
+  font-weight: 500;
+}
+
+.target-price input {
+  width: 130px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+}
+
+.target-price input:focus {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.target-price .secondary-button {
+  height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+}
+
+.target-reached {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(16, 185, 129, 0.14);
+  color: #10b981;
+  font-weight: 600;
+}
+
+.target-message {
+  font-size: 12px;
+}
+
+.target-pro-tag {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .target-price {
+    padding: 0 16px 14px;
+  }
+}

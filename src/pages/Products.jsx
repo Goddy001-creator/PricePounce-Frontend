@@ -14,7 +14,11 @@ import { useSearchParams } from "react-router-dom";
 
 import ProductRow from "../components/ui/ProductRow";
 import { useAuth } from "../context/AuthContext";
-import { getProductsPage } from "../services/api";
+import {
+  getBrands,
+  getCategories,
+  getProductsPage,
+} from "../services/api";
 
 const STORE_OPTIONS = ["All Stores", "Jumia", "Konga"];
 const PAGE_SIZE = 10;
@@ -83,6 +87,10 @@ function Products() {
   const [storeFilter, setStoreFilter] = useState(
     user?.settings?.default_store || "All Stores"
   );
+  const [categories, setCategories] = useState([]);
+  const [categorySlug, setCategorySlug] = useState("");
+  const [brands, setBrands] = useState([]);
+  const [brand, setBrand] = useState("");
   const [page, setPage] = useState(1);
   const [sort, setSort] = useState("updated");
   const [order, setOrder] = useState("desc");
@@ -93,9 +101,65 @@ function Products() {
 
   const requestRef = useRef(0);
 
-  const filtersActive = Boolean(urlQuery) || storeFilter !== "All Stores";
+  const visibleCategories = categories.filter(
+    (category) => category.product_count > 0
+  );
+
+  // The parent whose chip (or whose child's chip) is selected
+  const activeParent =
+    categories.find(
+      (category) =>
+        category.slug === categorySlug ||
+        category.children.some((child) => child.slug === categorySlug)
+    ) || null;
+
+  const activeCategory = activeParent
+    ? activeParent.slug === categorySlug
+      ? activeParent
+      : activeParent.children.find((child) => child.slug === categorySlug)
+    : null;
+
+  const filtersActive =
+    Boolean(urlQuery) ||
+    storeFilter !== "All Stores" ||
+    Boolean(categorySlug) ||
+    Boolean(brand);
+
   const sheetActive =
-    storeFilter !== "All Stores" || sort !== "updated" || order !== "desc";
+    storeFilter !== "All Stores" ||
+    Boolean(brand) ||
+    sort !== "updated" ||
+    order !== "desc";
+
+  // Categories load once
+  useEffect(() => {
+    let cancelled = false;
+
+    getCategories()
+      .then((data) => {
+        if (!cancelled) setCategories(data.categories || []);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Brands follow the selected category
+  useEffect(() => {
+    let cancelled = false;
+
+    getBrands(categorySlug)
+      .then((data) => {
+        if (!cancelled) setBrands(data.brands || []);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [categorySlug]);
 
   const loadProducts = useCallback(async () => {
     const requestId = requestRef.current + 1;
@@ -112,6 +176,8 @@ function Products() {
         order,
         q: urlQuery,
         store: storeFilter === "All Stores" ? "" : storeFilter,
+        category: categorySlug,
+        brand,
       });
 
       // Ignore answers from outdated requests
@@ -137,7 +203,7 @@ function Products() {
         setLoading(false);
       }
     }
-  }, [page, sort, order, urlQuery, storeFilter]);
+  }, [page, sort, order, urlQuery, storeFilter, categorySlug, brand]);
 
   useEffect(() => {
     loadProducts();
@@ -176,6 +242,17 @@ function Products() {
     setPage(1);
   }
 
+  function handleCategoryChange(slug) {
+    setCategorySlug(slug);
+    setBrand("");
+    setPage(1);
+  }
+
+  function handleBrandChange(value) {
+    setBrand(value);
+    setPage(1);
+  }
+
   function handleSort(key) {
     if (sort === key) {
       setOrder(order === "asc" ? "desc" : "asc");
@@ -200,9 +277,18 @@ function Products() {
 
   function resetSheetFilters() {
     setStoreFilter("All Stores");
+    setBrand("");
     setSort("updated");
     setOrder("desc");
     setPage(1);
+  }
+
+  function clearAllFilters() {
+    setStoreFilter("All Stores");
+    setCategorySlug("");
+    setBrand("");
+    setPage(1);
+    handleClearSearch();
   }
 
   function goToPage(nextPage) {
@@ -277,6 +363,21 @@ function Products() {
               </option>
             ))}
           </select>
+
+          {brands.length > 0 && (
+            <select
+              value={brand}
+              onChange={(event) => handleBrandChange(event.target.value)}
+              aria-label="Filter products by brand"
+            >
+              <option value="">All Brands</option>
+              {brands.map((item) => (
+                <option key={item.brand} value={item.brand}>
+                  {item.brand} ({item.product_count})
+                </option>
+              ))}
+            </select>
+          )}
         </div>
 
         <button
@@ -288,6 +389,65 @@ function Products() {
           <SlidersHorizontal size={19} />
         </button>
       </div>
+
+      {visibleCategories.length > 0 && (
+        <>
+          <div className="category-bar" role="tablist" aria-label="Categories">
+            <button
+              type="button"
+              className={`category-chip ${!categorySlug ? "active" : ""}`}
+              onClick={() => handleCategoryChange("")}
+            >
+              All
+            </button>
+
+            {visibleCategories.map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                className={`category-chip ${
+                  activeParent?.id === category.id ? "active" : ""
+                }`}
+                onClick={() => handleCategoryChange(category.slug)}
+              >
+                {category.name}
+                <small>{category.product_count}</small>
+              </button>
+            ))}
+          </div>
+
+          {activeParent &&
+            activeParent.children.some((child) => child.product_count > 0) && (
+              <div className="category-bar sub" aria-label="Sub-categories">
+                <button
+                  type="button"
+                  className={`category-chip ${
+                    categorySlug === activeParent.slug ? "active" : ""
+                  }`}
+                  onClick={() => handleCategoryChange(activeParent.slug)}
+                >
+                  All {activeParent.name}
+                </button>
+
+                {activeParent.children
+                  .filter((child) => child.product_count > 0)
+                  .map((child) => (
+                    <button
+                      key={child.id}
+                      type="button"
+                      className={`category-chip ${
+                        categorySlug === child.slug ? "active" : ""
+                      }`}
+                      onClick={() => handleCategoryChange(child.slug)}
+                    >
+                      {child.name}
+                      <small>{child.product_count}</small>
+                    </button>
+                  ))}
+              </div>
+            )}
+        </>
+      )}
 
       {filtersOpen && (
         <>
@@ -328,6 +488,23 @@ function Products() {
                 ))}
               </select>
             </label>
+
+            {brands.length > 0 && (
+              <label className="sheet-field">
+                <span>Brand</span>
+                <select
+                  value={brand}
+                  onChange={(event) => handleBrandChange(event.target.value)}
+                >
+                  <option value="">All Brands</option>
+                  {brands.map((item) => (
+                    <option key={item.brand} value={item.brand}>
+                      {item.brand} ({item.product_count})
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
 
             <label className="sheet-field">
               <span>Sort by</span>
@@ -416,6 +593,32 @@ function Products() {
                 </button>
               </span>
             )}
+
+            {activeCategory && (
+              <span className="filter-chip">
+                Category: {activeCategory.name}
+                <button
+                  type="button"
+                  onClick={() => handleCategoryChange("")}
+                  aria-label="Clear category filter"
+                >
+                  <X size={13} />
+                </button>
+              </span>
+            )}
+
+            {brand && (
+              <span className="filter-chip">
+                Brand: {brand}
+                <button
+                  type="button"
+                  onClick={() => handleBrandChange("")}
+                  aria-label="Clear brand filter"
+                >
+                  <X size={13} />
+                </button>
+              </span>
+            )}
           </div>
 
           <span className="result-count">
@@ -456,19 +659,12 @@ function Products() {
 
           <p>
             {filtersActive
-              ? "Try changing your search or store filter."
+              ? "Try changing your search, category or filters."
               : "PricePounce has not loaded any products yet."}
           </p>
 
           {filtersActive && (
-            <button
-              className="secondary-button"
-              onClick={() => {
-                setStoreFilter("All Stores");
-                setPage(1);
-                handleClearSearch();
-              }}
-            >
+            <button className="secondary-button" onClick={clearAllFilters}>
               Clear Filters
             </button>
           )}

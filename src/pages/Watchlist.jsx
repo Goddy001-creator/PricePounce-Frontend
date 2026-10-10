@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import ProductRow from "../components/ui/ProductRow";
+import TargetPrice from "../components/ui/TargetPrice";
 import { useWatchlist } from "../context/WatchlistContext";
 import { getWatchlist } from "../services/api";
 
@@ -43,6 +44,14 @@ function Watchlist() {
     } catch {
       loadWatchlist();
     }
+  }
+
+  function handleTargetSaved(productId, target) {
+    setProducts((previous) =>
+      previous.map((item) =>
+        item.id === productId ? { ...item, target_price: target } : item
+      )
+    );
   }
 
   return (
@@ -130,18 +139,25 @@ function Watchlist() {
 
             <div className="product-row-list">
               {products.map((product) => (
-                <div className="watchlist-row" key={product.id}>
-                  <ProductRow product={product} />
+                <div className="watchlist-item" key={product.id}>
+                  <div className="watchlist-row">
+                    <ProductRow product={product} />
 
-                  <button
-                    type="button"
-                    className="watchlist-remove"
-                    onClick={() => handleRemove(product)}
-                    aria-label={`Remove ${product.product_name} from watchlist`}
-                    title="Remove from watchlist"
-                  >
-                    <Bookmark size={16} fill="currentColor" />
-                  </button>
+                    <button
+                      type="button"
+                      className="watchlist-remove"
+                      onClick={() => handleRemove(product)}
+                      aria-label={`Remove ${product.product_name} from watchlist`}
+                      title="Remove from watchlist"
+                    >
+                      <Bookmark size={16} fill="currentColor" />
+                    </button>
+                  </div>
+
+                  <TargetPrice
+                    product={product}
+                    onSaved={handleTargetSaved}
+                  />
                 </div>
               ))}
             </div>

@@ -52,6 +52,8 @@ export async function getProductsPage({
   order = "desc",
   q = "",
   store = "",
+  category = "",
+  brand = "",
 } = {}) {
   const response = await api.get("/products", {
     params: {
@@ -61,7 +63,22 @@ export async function getProductsPage({
       order,
       q: q || undefined,
       store: store || undefined,
+      category: category || undefined,
+      brand: brand || undefined,
     },
+  });
+
+  return response.data;
+}
+
+export async function getCategories() {
+  const response = await api.get("/categories");
+  return response.data;
+}
+
+export async function getBrands(category = "") {
+  const response = await api.get("/brands", {
+    params: { category: category || undefined },
   });
 
   return response.data;
@@ -224,6 +241,14 @@ export async function changePassword(currentPassword, newPassword) {
   const response = await api.post("/account/change-password", {
     current_password: currentPassword,
     new_password: newPassword,
+  });
+
+  return response.data;
+}
+
+export async function setTargetPrice(productId, targetPrice) {
+  const response = await api.put(`/watchlist/${productId}/target`, {
+    target_price: targetPrice,
   });
 
   return response.data;
