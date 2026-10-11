@@ -2,15 +2,21 @@ import { Check, Crown, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useAuth } from "../../context/AuthContext";
+import {
+  cancelSubscription,
+  createCheckout,
+  getBillingStatus,
+} from "../../services/api";
 
 // Keep these in sync with PLAN_LIMITS in the backend (app/security/plans.py)
 const FREE_WATCHLIST = 10;
 const PRO_WATCHLIST = 200;
 const FREE_HISTORY_DAYS = 30;
 
-// Fill these in when pricing and payments are ready
-const PRO_PRICE_LABEL = ""; // for example "₦2,000 / month"
-const SUPPORT_EMAIL = ""; // for example "support@yourdomain.com"
+const PRICES = {
+  monthly: { amount: "₦2,000", note: "per month, billed monthly" },
+  yearly: { amount: "₦1,680", note: "per month, billed ₦20,160 yearly" },
+};
 
 const FREE_FEATURES = [
   "Browse, search and compare prices",
@@ -22,19 +28,37 @@ const FREE_FEATURES = [
 const PRO_FEATURES = [
   { text: `Watchlist of up to ${PRO_WATCHLIST} products` },
   { text: "Full price history" },
-  { text: "Instant price-drop alerts by email", soon: true },
-  { text: "Target-price and back-in-stock alerts", soon: true },
+  { text: "Instant price-drop alerts by email" },
+  { text: "Target-price alerts" },
+  { text: "Deal insights: all-time low and good-deal signal" },
+  { text: "CSV export and weekly digest" },
   { text: "Priority price refresh for your watchlist", soon: true },
-  { text: "Deal insights: all-time low and good-deal signal", soon: true },
-  { text: "CSV export and weekly digest", soon: true },
 ];
+
+function formatDate(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("en-NG", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
 function UpgradeModal({ reason, onClose }) {
   const { user } = useAuth();
   const isPro = user?.plan === "pro";
 
   const closeRef = useRef(null);
-  const [notice, setNotice] = useState(false);
+  const [interval, setInterval] = useState("yearly");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [billing, setBilling] = useState(null);
+  const [cancelled, setCancelled] = useState(false);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -54,18 +78,53 @@ function UpgradeModal({ reason, onClose }) {
     };
   }, [onClose]);
 
-  function handleUpgrade() {
-    setNotice(true);
+  useEffect(() => {
+    if (!isPro) return;
 
-    if (SUPPORT_EMAIL) {
-      const subject = encodeURIComponent("Upgrade to PricePounce Pro");
-      const body = encodeURIComponent(
-        `Hi, I'd like to upgrade to Pro. My account email is ${user?.email}.`
+    getBillingStatus()
+      .then(setBilling)
+      .catch(() => {});
+  }, [isPro]);
+
+  async function handleUpgrade() {
+    setBusy(true);
+    setError("");
+
+    try {
+      const data = await createCheckout(interval);
+      window.location.href = data.authorization_url;
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.error ||
+          "Couldn't start the payment. Please try again."
       );
-
-      window.location.href = `mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`;
+      setBusy(false);
     }
   }
+
+  async function handleCancel() {
+    if (!window.confirm("Stop automatic renewal? Pro stays active until it expires.")) {
+      return;
+    }
+
+    setBusy(true);
+    setError("");
+
+    try {
+      await cancelSubscription();
+      setCancelled(true);
+      setBilling((current) => (current ? { ...current, renewing: false } : current));
+    } catch (requestError) {
+      setError(
+        requestError.response?.data?.error ||
+          "Couldn't cancel. Please try again."
+      );
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const price = PRICES[interval];
 
   return (
     <div className="pro-overlay" onClick={onClose}>
@@ -129,8 +188,29 @@ function UpgradeModal({ reason, onClose }) {
               </span>
             </div>
 
+            {!isPro && (
+              <div className="billing-toggle" role="group" aria-label="Billing period">
+                <button
+                  type="button"
+                  className={interval === "monthly" ? "active" : ""}
+                  onClick={() => setInterval("monthly")}
+                >
+                  Monthly
+                </button>
+
+                <button
+                  type="button"
+                  className={interval === "yearly" ? "active" : ""}
+                  onClick={() => setInterval("yearly")}
+                >
+                  Yearly <em className="soon-chip">Save 16%</em>
+                </button>
+              </div>
+            )}
+
             <div className="plan-price">
-              {PRO_PRICE_LABEL || "Pricing coming soon"}
+              {price.amount}
+              <small className="plan-price-note">{price.note}</small>
             </div>
 
             <ul className="plan-features">
@@ -149,18 +229,47 @@ function UpgradeModal({ reason, onClose }) {
               type="button"
               className="primary-button plan-button"
               onClick={handleUpgrade}
-              disabled={isPro}
+              disabled={isPro || busy}
             >
-              {isPro ? "You're on Pro" : "Upgrade to Pro"}
+              {isPro
+                ? "You're on Pro"
+                : busy
+                  ? "Opening checkout..."
+                  : "Upgrade to Pro"}
             </button>
 
-            {notice && !isPro && (
+            {isPro && billing?.expires_at && (
               <p className="plan-notice">
-                {SUPPORT_EMAIL
-                  ? "Online payments are coming soon. For now Pro is activated manually, so send us the email that just opened."
-                  : "Online payments are coming soon."}
+                {billing.renewing
+                  ? `Renews automatically on ${formatDate(billing.expires_at)}.`
+                  : `Pro is active until ${formatDate(billing.expires_at)}.`}
               </p>
             )}
+
+            {isPro && billing?.renewing && !cancelled && (
+              <button
+                type="button"
+                className="link-button"
+                onClick={handleCancel}
+                disabled={busy}
+              >
+                Cancel automatic renewal
+              </button>
+            )}
+
+            {cancelled && (
+              <p className="plan-notice">
+                Renewal cancelled. Pro stays active until it expires.
+              </p>
+            )}
+
+            {!isPro && (
+              <p className="plan-notice">
+                Secure payment by Paystack. Cancel anytime.
+              </p>
+            )}
+
+            {error && <p className="field-error">{error}</p>}
           </div>
         </div>
       </div>

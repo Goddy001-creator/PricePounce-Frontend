@@ -1,4 +1,16 @@
 import axios from "axios";
+// Save a Paystack return reference immediately, before any redirect drops it
+try {
+  const returnParams = new URLSearchParams(window.location.search);
+  const returnRef = returnParams.get("reference") || returnParams.get("trxref");
+
+  if (returnRef && returnRef.startsWith("pp_")) {
+    sessionStorage.setItem("pp_pending_ref", returnRef);
+    window.history.replaceState({}, "", window.location.pathname);
+  }
+} catch {
+  // storage unavailable
+}
 
 const api = axios.create({
   baseURL:
@@ -251,6 +263,39 @@ export async function setTargetPrice(productId, targetPrice) {
     target_price: targetPrice,
   });
 
+  return response.data;
+}
+
+export async function getProductInsights(productId) {
+  const response = await api.get(`/products/${productId}/insights`);
+  return response.data;
+}
+
+export async function downloadWatchlistCsv() {
+  const response = await api.get("/watchlist/export.csv", {
+    responseType: "blob",
+  });
+
+  return response.data;
+}
+
+export async function createCheckout(interval) {
+  const response = await api.post("/billing/checkout", { interval });
+  return response.data;
+}
+
+export async function verifyPayment(reference) {
+  const response = await api.get("/billing/verify", { params: { reference } });
+  return response.data;
+}
+
+export async function getBillingStatus() {
+  const response = await api.get("/billing/status");
+  return response.data;
+}
+
+export async function cancelSubscription() {
+  const response = await api.post("/billing/cancel");
   return response.data;
 }
 

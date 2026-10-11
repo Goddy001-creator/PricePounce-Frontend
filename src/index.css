@@ -3364,3 +3364,167 @@ a:focus-visible {
     padding: 0 16px 14px;
   }
 }
+
+/* ----- Pro: deal insights and export ----- */
+
+.page-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.deal-insights .card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.deal-pro-tag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(124, 58, 237, 0.14);
+  color: var(--primary);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.deal-locked {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.deal-locked span {
+  flex: 1 1 260px;
+}
+
+.deal-verdict {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: rgba(124, 58, 237, 0.1);
+  color: var(--primary);
+}
+
+.deal-verdict div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.deal-verdict strong {
+  font-size: 15px;
+}
+
+.deal-verdict span {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.deal-verdict.all_time_low,
+.deal-verdict.near_low,
+.deal-verdict.good_deal {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.deal-verdict.pricey {
+  background: rgba(245, 158, 11, 0.14);
+  color: #f59e0b;
+}
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.insight-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.insight-grid span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.insight-grid strong {
+  color: var(--text-primary);
+  font-size: 16px;
+}
+
+.insight-grid small {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.insight-note {
+  margin: 14px 0 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+@media (max-width: 640px) {
+  .insight-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ----- Billing ----- */
+
+.billing-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
+.billing-toggle button {
+  flex: 1;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.billing-toggle button.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.plan-price-note {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+}
+
+.link-button {
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-decoration: underline;
+  cursor: pointer;
+}

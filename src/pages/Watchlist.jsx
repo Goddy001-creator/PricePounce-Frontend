@@ -1,14 +1,44 @@
-import { Bookmark, Package, RefreshCw } from "lucide-react";
+import { Bookmark, Download, Package, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import ProductRow from "../components/ui/ProductRow";
 import TargetPrice from "../components/ui/TargetPrice";
+import { useUpgrade } from "../context/UpgradeContext";
 import { useWatchlist } from "../context/WatchlistContext";
-import { getWatchlist } from "../services/api";
+import { downloadWatchlistCsv, getWatchlist } from "../services/api";
 
 function Watchlist() {
   const { toggle } = useWatchlist();
+  const { openUpgrade } = useUpgrade();
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState("");
+
+  async function handleExport() {
+    setExporting(true);
+    setExportError("");
+
+    try {
+      const blob = await downloadWatchlistCsv();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "pricepounce-watchlist.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (requestError) {
+      if (requestError.response?.status === 403) {
+        openUpgrade("Export your watchlist to a CSV file.");
+      } else {
+        setExportError("Couldn't export your watchlist. Please try again.");
+      }
+    } finally {
+      setExporting(false);
+    }
+  }
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,18 +94,31 @@ function Watchlist() {
           </p>
         </div>
 
-        <button
-          className="primary-button"
-          onClick={loadWatchlist}
-          disabled={loading}
-        >
-          <RefreshCw
-            size={17}
-            className={loading ? "button-spinner" : ""}
-          />
-          Refresh
-        </button>
+        <div className="page-heading-actions">
+          <button
+            type="button"
+            className="secondary-button"
+            onClick={handleExport}
+            disabled={exporting}
+          >
+            <Download size={17} />
+            {exporting ? "Exporting..." : "Export CSV"}
+          </button>
+
+          <button
+            className="primary-button"
+            onClick={loadWatchlist}
+            disabled={loading}
+          >
+            <RefreshCw
+              size={17}
+              className={loading ? "button-spinner" : ""}
+            />
+            Refresh
+          </button>
+        </div>
       </div>
+      {exportError && <span className="field-error">{exportError}</span>}
 
       {loading ? (
         <div className="content-card products-loading-card">

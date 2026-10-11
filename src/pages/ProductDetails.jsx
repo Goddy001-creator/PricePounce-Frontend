@@ -25,6 +25,7 @@ import {
 import { useAuth } from "../context/AuthContext";
 import { useUpgrade } from "../context/UpgradeContext";
 import { useWatchlist } from "../context/WatchlistContext";
+import DealInsights from "../components/pro/DealInsights";
 import {
   getPriceHistory,
   getProduct,
@@ -137,7 +138,7 @@ function ProductDetails() {
       } else {
         setWatchError(
           data?.error ||
-            "Couldn't update your watchlist. Please try again."
+          "Couldn't update your watchlist. Please try again."
         );
       }
     }
@@ -314,6 +315,8 @@ function ProductDetails() {
           )}
         </div>
       </section>
+
+      <DealInsights productId={product.id} />
 
       <section className="content-card price-history-card">
         <div className="card-heading">
