@@ -9,7 +9,11 @@ import {
 import TwoFactorSettings from "../components/settings/TwoFactorSettings";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
-import { changePassword } from "../services/api";
+import {
+  changePassword,
+  downloadAccountData,
+  downloadAccountPdf,
+} from "../services/api";
 import {
   getPasswordRules,
   isPasswordValid,
@@ -45,6 +49,55 @@ function Settings() {
   const [passwordErrors, setPasswordErrors] = useState({});
   const [passwordMessage, setPasswordMessage] = useState("");
   const [changing, setChanging] = useState(false);
+  const [dataBusy, setDataBusy] = useState(false);
+
+  async function handleExportData(kind) {
+    setDataBusy(true);
+    setFeedback({ type: "", message: "" });
+
+    try {
+      const blob =
+        kind === "pdf" ? await downloadAccountPdf() : await downloadAccountData();
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download =
+        kind === "pdf" ? "pricepounce-statement.pdf" : "pricepounce-my-data.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      setFeedback({ type: "success", message: "Your data was downloaded." });
+    } catch {
+      setFeedback({
+        type: "error",
+        message: "Couldn't export your data. Please try again.",
+      });
+    } finally {
+      setDataBusy(false);
+    }
+  }
+
+  async function handleClearCache() {
+    setFeedback({ type: "", message: "" });
+
+    try {
+      sessionStorage.clear();
+
+      if ("caches" in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((key) => caches.delete(key)));
+      }
+    } catch {
+      // nothing to clear, or storage unavailable
+    }
+
+    setFeedback({ type: "success", message: "Cache cleared. Loading fresh data..." });
+    setTimeout(() => window.location.reload(), 800);
+  }
 
   async function saveSetting(partial) {
     setFeedback({ type: "", message: "" });
@@ -83,7 +136,7 @@ function Settings() {
     } catch (requestError) {
       setNameError(
         requestError.response?.data?.fields?.name ||
-          "Couldn't update your profile."
+        "Couldn't update your profile."
       );
     }
   }
@@ -312,14 +365,33 @@ function Settings() {
           <h2>Data</h2>
 
           <div className="settings-actions">
-            <button className="secondary-button">
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleClearCache}
+            >
               <Trash2 size={17} />
               Clear Cache
             </button>
 
-            <button className="secondary-button">
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => handleExportData("pdf")}
+              disabled={dataBusy}
+            >
               <Download size={17} />
-              Export Data
+              {dataBusy ? "Preparing..." : "Export PDF"}
+            </button>
+
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={() => handleExportData("xlsx")}
+              disabled={dataBusy}
+            >
+              <Download size={17} />
+              Export Excel
             </button>
           </div>
         </section>

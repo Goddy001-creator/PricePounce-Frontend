@@ -299,4 +299,14 @@ export async function cancelSubscription() {
   return response.data;
 }
 
+export async function downloadAccountData() {
+  const response = await api.get("/account/export", { responseType: "blob" });
+  return response.data;
+}
+
+export async function downloadAccountPdf() {
+  const response = await api.get("/account/export.pdf", { responseType: "blob" });
+  return response.data;
+}
+
 export default api;
