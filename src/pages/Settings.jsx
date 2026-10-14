@@ -1,5 +1,5 @@
 import { Database, Download, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import {
   FormField,
@@ -7,12 +7,15 @@ import {
   PasswordRules,
 } from "../components/auth/FormFields";
 import TwoFactorSettings from "../components/settings/TwoFactorSettings";
+import DeleteAccountSection from "../components/settings/DeleteAccountSection";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import {
   changePassword,
   downloadAccountData,
   downloadAccountPdf,
+  getPreferences,
+  savePreferences,
 } from "../services/api";
 import {
   getPasswordRules,
@@ -50,6 +53,38 @@ function Settings() {
   const [passwordMessage, setPasswordMessage] = useState("");
   const [changing, setChanging] = useState(false);
   const [dataBusy, setDataBusy] = useState(false);
+  const [emailAlerts, setEmailAlerts] = useState(null);
+  const [emailAlertsBusy, setEmailAlertsBusy] = useState(false);
+
+  useEffect(() => {
+    getPreferences()
+      .then((data) => setEmailAlerts(data.email_alerts))
+      .catch(() => {});
+  }, []);
+
+  async function handleEmailAlertsChange(event) {
+    const next = event.target.checked;
+
+    setEmailAlertsBusy(true);
+    setFeedback({ type: "", message: "" });
+
+    try {
+      const data = await savePreferences({ email_alerts: next });
+
+      setEmailAlerts(data.email_alerts);
+      setFeedback({
+        type: "success",
+        message: next ? "Email alerts turned on." : "Email alerts turned off.",
+      });
+    } catch {
+      setFeedback({
+        type: "error",
+        message: "Couldn't save your preference. Please try again.",
+      });
+    } finally {
+      setEmailAlertsBusy(false);
+    }
+  }
 
   async function handleExportData(kind) {
     setDataBusy(true);
@@ -401,31 +436,28 @@ function Settings() {
 
           <div className="setting-row">
             <div className="setting-info">
-              <strong>Price Drop Alerts</strong>
+              <strong>Email alerts and weekly digest</strong>
               <span>
-                V1 notification settings placeholder.
+                {user.plan === "pro"
+                  ? "Price-drop and target-price alerts, plus a weekly summary, sent to your email."
+                  : "A Pro feature. Upgrade to get price-drop alerts and a weekly digest by email."}
               </span>
             </div>
 
             <label className="switch">
-              <input type="checkbox" />
+              <input
+                type="checkbox"
+                checked={Boolean(emailAlerts)}
+                disabled={emailAlerts === null || emailAlertsBusy}
+                onChange={handleEmailAlertsChange}
+              />
               <span />
             </label>
           </div>
+        </section>
 
-          <div className="setting-row">
-            <div className="setting-info">
-              <strong>Email Notifications</strong>
-              <span>
-                Email alerts will be available later.
-              </span>
-            </div>
-
-            <label className="switch">
-              <input type="checkbox" />
-              <span />
-            </label>
-          </div>
+        <section className="settings-section">
+          <DeleteAccountSection />
         </section>
 
         <section className="settings-section">

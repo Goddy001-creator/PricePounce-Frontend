@@ -309,4 +309,21 @@ export async function downloadAccountPdf() {
   return response.data;
 }
 
+export async function getPreferences() {
+  const response = await api.get("/account/preferences");
+  return response.data;
+}
+
+export async function savePreferences(preferences) {
+  const response = await api.put("/account/preferences", preferences);
+  return response.data;
+}
+
+export async function getPreviewProducts() {
+  const response = await api.get("/preview/recent");
+  return response.data;
+}
+
+export const deleteAccount = (password) => api.post("/account/delete", { password });
+
 export default api;

@@ -1,6 +1,7 @@
 import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+import GatePage from "../ui/GatePage";
 
 export function ProtectedRoute() {
   const { user, loading } = useAuth();
@@ -69,6 +70,21 @@ export function AdminRoute() {
         </div>
       </div>
     );
+  }
+
+  return <Outlet />;
+}
+
+// Shows the sign-up gate (inside the normal layout) instead of redirecting
+export function RequireAccount() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className="auth-loading">Loading...</div>;
+  }
+
+  if (!user) {
+    return <GatePage />;
   }
 
   return <Outlet />;

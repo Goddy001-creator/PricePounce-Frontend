@@ -14,6 +14,7 @@ import {
   validateEmail,
   validateName,
 } from "../utils/validation";
+import { SignupConsent } from "../components/ui/LegalLinks";
 
 function Signup() {
   const [name, setName] = useState("");
@@ -147,6 +148,7 @@ function Signup() {
         >
           {submitting ? "Creating account..." : "Create account"}
         </button>
+        <SignupConsent />
       </form>
     </AuthLayout>
   );

@@ -18,7 +18,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { Link } from "react-router-dom";
 
+import { useAuth } from "../context/AuthContext";
 import StatCard from "../components/ui/StatCard";
 import ProductRow from "../components/ui/ProductRow";
 import {
@@ -27,6 +29,7 @@ import {
   getPriceTrends,
   getProducts,
   getStoreSummaries,
+  getPreviewProducts,
 } from "../services/api";
 
 const STORE_COLORS = ["#5c3aed", "#a5b4fc", "#2563eb", "#10b981"];
@@ -105,13 +108,14 @@ function Dashboard() {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [trendPoints, setTrendPoints] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
 
   const loadDashboard = useCallback(async () => {
     try {
       const [summaryData, productData] =
         await Promise.all([
           getAnalyticsSummary(),
-          getProducts(),
+          user ? getProducts() : getPreviewProducts(),
         ]);
 
       setSummary(summaryData);
@@ -148,7 +152,7 @@ function Dashboard() {
     } else {
       console.error("Price trends loading failed:", trendsRes.reason);
     }
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     loadDashboard();
@@ -187,11 +191,34 @@ function Dashboard() {
         <div>
           <h1>Dashboard</h1>
           <p>
-            Welcome back! Here's what's happening
-            with your prices today.
+            {user
+              ? "Welcome back! Here's what's happening with your prices today."
+              : "Live prices from Jumia and Konga. Sign up free to track products and get price alerts."}
           </p>
         </div>
       </div>
+
+      {!user && (
+        <div className="guest-banner">
+          <div>
+            <strong>You're viewing a preview.</strong>
+            <span>
+              Create a free account to browse every product, see price history
+              and set price alerts.
+            </span>
+          </div>
+
+          <div className="gate-actions">
+            <Link to="/signup" className="primary-button">
+              Sign up free
+            </Link>
+
+            <Link to="/login" className="secondary-button">
+              Log in
+            </Link>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="loading-state">

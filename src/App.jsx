@@ -1,18 +1,16 @@
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-} from "react-router-dom";
 import { useEffect, useState } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import {
   AdminRoute,
-  ProtectedRoute,
   PublicRoute,
+  RequireAccount,
 } from "./components/auth/RouteGuards";
 import AppLayout from "./components/layout/AppLayout";
 import SplashScreen from "./components/ui/SplashScreen";
+import Terms from "./pages/legal/Terms";
+import Privacy from "./pages/legal/Privacy";
+import Refunds from "./pages/legal/Refunds";
 
 import About from "./pages/About";
 import Alerts from "./pages/Alerts";
@@ -43,11 +41,7 @@ function App() {
     }
 
     const splashTimer = window.setTimeout(() => {
-      sessionStorage.setItem(
-        "pricepulse_splash_seen",
-        "true"
-      );
-
+      sessionStorage.setItem("pricepulse_splash_seen", "true");
       setShowSplash(false);
     }, 1800);
 
@@ -66,18 +60,24 @@ function App() {
           <Route path="/signup" element={<Signup />} />
         </Route>
 
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/refunds" element={<Refunds />} />
+
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
 
-        <Route element={<ProtectedRoute />}>
-          <Route element={<AppLayout />}>
-            <Route
-              path="/"
-              element={<Navigate to="/dashboard" replace />}
-            />
+        {/* The layout works for visitors and members */}
+        <Route element={<AppLayout />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-            <Route path="/dashboard" element={<Dashboard />} />
+          {/* Open to visitors as a preview */}
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/about" element={<About />} />
+
+          {/* Members only: visitors see the sign-up gate */}
+          <Route element={<RequireAccount />}>
             <Route path="/products" element={<Products />} />
             <Route path="/products/:productId" element={<ProductDetails />} />
             <Route path="/watchlist" element={<Watchlist />} />
@@ -86,7 +86,6 @@ function App() {
             <Route path="/alerts" element={<Alerts />} />
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/settings" element={<Settings />} />
-            <Route path="/about" element={<About />} />
 
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<Admin />} />
