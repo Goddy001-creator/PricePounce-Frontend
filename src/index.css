@@ -3648,16 +3648,24 @@ a:focus-visible {
 
 .coming-soon { min-height: 100vh; display: flex; flex-direction: column; background: #f7f6fb; color: #1f1b2e; }
 .coming-soon-main { flex: 1; width: 100%; max-width: 860px; margin: 0 auto; padding: 56px 16px 32px; text-align: center; }
-.coming-soon-brand { font-size: 1.5rem; font-weight: 700; color: #5C3AED; margin-bottom: 28px; }
+.coming-soon-brand { display: inline-block; font-size: 1.5rem; font-weight: 700; color: #5C3AED; margin-bottom: 28px; transition: transform .2s ease, letter-spacing .2s ease; }
 .coming-soon h1 { font-size: 2.4rem; line-height: 1.2; margin: 0 0 16px; }
 .coming-soon-lead { font-size: 1.1rem; line-height: 1.7; max-width: 620px; margin: 0 auto 36px; opacity: .85; }
 .coming-soon-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 36px; text-align: left; }
-.coming-soon-card { background: #fff; border: 1px solid rgba(92,58,237,.18); border-radius: 14px; padding: 20px; }
+.coming-soon-card { background: #fff; border: 1px solid rgba(92,58,237,.18); border-radius: 14px; padding: 20px; transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
 .coming-soon-card h2 { font-size: 1.05rem; margin: 0 0 8px; color: #5C3AED; }
 .coming-soon-card p { margin: 0; line-height: 1.6; opacity: .85; font-size: .95rem; }
 .coming-soon-contact { opacity: .85; }
-.coming-soon-contact a { color: #5C3AED; font-weight: 600; }
+.coming-soon-contact a { color: #5C3AED; font-weight: 600; text-decoration: none; background-image: linear-gradient(currentColor, currentColor); background-size: 0 2px; background-position: 0 100%; background-repeat: no-repeat; transition: background-size .25s ease, color .2s ease; }
 .coming-soon-footer { padding: 20px 16px; text-align: center; font-size: .85rem; opacity: .7; }
+
+@media (hover: hover) {
+  .coming-soon-brand:hover { transform: scale(1.06); letter-spacing: .5px; }
+  .coming-soon-card:hover { transform: translateY(-6px); border-color: #5C3AED; box-shadow: 0 12px 28px rgba(92,58,237,.18); }
+  .coming-soon-contact a:hover { background-size: 100% 2px; color: #4a2bc4; }
+}
+.coming-soon-contact a:focus-visible { outline: 2px solid #5C3AED; outline-offset: 3px; border-radius: 4px; }
+
 @media (max-width: 700px) {
   .coming-soon-main { padding-top: 40px; }
   .coming-soon h1 { font-size: 1.8rem; }
@@ -3667,4 +3675,13 @@ a:focus-visible {
   .coming-soon { background: #14111f; color: #ece9f7; }
   .coming-soon-card { background: #1d1930; border-color: rgba(167,139,250,.25); }
   .coming-soon-brand, .coming-soon-card h2, .coming-soon-contact a { color: #a78bfa; }
+  @media (hover: hover) {
+    .coming-soon-card:hover { border-color: #a78bfa; box-shadow: 0 12px 28px rgba(0,0,0,.45); }
+    .coming-soon-contact a:hover { color: #c4b5fd; }
+  }
+  .coming-soon-contact a:focus-visible { outline-color: #a78bfa; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coming-soon-brand, .coming-soon-card, .coming-soon-contact a { transition: none; }
+  .coming-soon-brand:hover, .coming-soon-card:hover { transform: none; }
 }
