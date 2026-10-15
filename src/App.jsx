@@ -15,6 +15,7 @@ import Refunds from "./pages/legal/Refunds";
 import About from "./pages/About";
 import Alerts from "./pages/Alerts";
 import Analytics from "./pages/Analytics";
+import ComingSoon from "./pages/ComingSoon";
 import Dashboard from "./pages/Dashboard";
 import ForgotPassword from "./pages/ForgotPassword";
 import Login from "./pages/Login";
@@ -29,6 +30,9 @@ import VerifyEmail from "./pages/VerifyEmail";
 import Watchlist from "./pages/Watchlist";
 import Admin from "./pages/admin/Admin";
 import AdminUserDetail from "./pages/admin/AdminUserDetail";
+
+// Set VITE_COMING_SOON=true when building for the public site before launch
+const COMING_SOON = import.meta.env.VITE_COMING_SOON === "true";
 
 function App() {
   const [showSplash, setShowSplash] = useState(() => {
@@ -49,6 +53,10 @@ function App() {
       window.clearTimeout(splashTimer);
     };
   }, [showSplash]);
+
+  if (COMING_SOON) {
+    return <ComingSoon />;
+  }
 
   return (
     <BrowserRouter>
