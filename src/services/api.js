@@ -326,4 +326,11 @@ export async function getPreviewProducts() {
 
 export const deleteAccount = (password) => api.post("/account/delete", { password });
 
+/* ---------- currency rates ---------- */
+
+export async function getRates() {
+  const response = await api.get("/rates");
+  return response.data;
+}
+
 export default api;

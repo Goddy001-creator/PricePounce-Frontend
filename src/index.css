@@ -3685,3 +3685,73 @@ a:focus-visible {
   .coming-soon-brand, .coming-soon-card, .coming-soon-contact a { transition: none; }
   .coming-soon-brand:hover, .coming-soon-card:hover { transform: none; }
 }
+
+/* ---------- currency rates page ---------- */
+.rates-page { display: flex; flex-direction: column; gap: 20px; }
+.rates-head h1 { margin: 0; font-size: 24px; font-weight: 700; }
+.rates-head p { margin: 4px 0 0; opacity: 0.7; font-size: 14px; }
+.rates-note { opacity: 0.7; }
+.rates-error { color: #dc2626; opacity: 1; }
+
+.rates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.rate-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(127, 127, 127, 0.28);
+  background: rgba(127, 127, 127, 0.07);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  min-height: 44px;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.rate-card.selected { border-color: #5c3aed; box-shadow: 0 0 0 1px #5c3aed; }
+@media (hover: hover) {
+  .rate-card:hover { border-color: #5c3aed; transform: translateY(-2px); }
+}
+.rate-code { font-weight: 700; font-size: 13px; color: #5c3aed; letter-spacing: 0.04em; }
+.rate-name { font-size: 13px; opacity: 0.7; }
+.rate-value { font-size: 22px; font-weight: 700; margin-top: 6px; }
+
+.rate-change { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; }
+.rate-change.up { color: #16a34a; }
+.rate-change.down { color: #dc2626; }
+.rate-change.flat { opacity: 0.6; }
+
+.rate-convert {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(127, 127, 127, 0.28);
+  background: rgba(127, 127, 127, 0.07);
+}
+.rate-convert h2 { margin: 0 0 12px; font-size: 16px; }
+.rate-convert-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.rate-convert-row input,
+.rate-convert-row select {
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(127, 127, 127, 0.4);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.rate-convert-row input { width: 130px; }
+.rate-convert-result { font-size: 20px; font-weight: 700; }
+
+.rates-credit { font-size: 12.5px; opacity: 0.7; }
+.rates-credit a { color: #5c3aed; }
+
+@media (max-width: 600px) {
+  .rates-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rate-value { font-size: 18px; }
+}

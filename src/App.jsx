@@ -11,6 +11,7 @@ import SplashScreen from "./components/ui/SplashScreen";
 import Terms from "./pages/legal/Terms";
 import Privacy from "./pages/legal/Privacy";
 import Refunds from "./pages/legal/Refunds";
+import Rates from "./pages/Rates";
 
 import About from "./pages/About";
 import Alerts from "./pages/Alerts";
@@ -83,6 +84,7 @@ function App() {
           {/* Open to visitors as a preview */}
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/about" element={<About />} />
+          <Route path="/rates" element={<Rates />} />
 
           {/* Members only: visitors see the sign-up gate */}
           <Route element={<RequireAccount />}>

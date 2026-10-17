@@ -3,6 +3,7 @@ import {
   Bell,
   Bookmark,
   CircleHelp,
+  Coins,
   Crown,
   LayoutDashboard,
   Lock,
@@ -22,6 +23,7 @@ import { LegalLinks } from "../ui/LegalLinks";
 
 const navigation = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
+  { label: "Currency", path: "/rates", icon: Coins },
   { label: "Products", path: "/products", icon: Package, members: true },
   { label: "Watchlist", path: "/watchlist", icon: Bookmark, members: true },
   { label: "Analytics", path: "/analytics", icon: BarChart3, members: true },
