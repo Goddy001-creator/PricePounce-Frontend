@@ -13,14 +13,15 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import ProductRow from "../components/ui/ProductRow";
+import NotAffiliated from "../components/ui/NotAffiliated";
 import { useAuth } from "../context/AuthContext";
 import {
   getBrands,
   getCategories,
   getProductsPage,
+  getStoreList,
 } from "../services/api";
 
-const STORE_OPTIONS = ["All Stores", "Jumia", "Konga"];
 const PAGE_SIZE = 10;
 
 const SORT_OPTIONS = [
@@ -100,6 +101,27 @@ function Products() {
   const [error, setError] = useState("");
 
   const requestRef = useRef(0);
+
+  const [storeNames, setStoreNames] = useState([]);
+  const STORE_OPTIONS = ["All Stores", ...storeNames];
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getStoreList()
+      .then((data) => {
+        if (!cancelled) {
+          setStoreNames((data.stores || []).map((store) => store.name));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setStoreNames(["Jumia", "Konga"]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const visibleCategories = categories.filter(
     (category) => category.product_count > 0
@@ -787,6 +809,8 @@ function Products() {
           </div>
         </div>
       )}
+
+      <NotAffiliated />
     </div>
   );
 }

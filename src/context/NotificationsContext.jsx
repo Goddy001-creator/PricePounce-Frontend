@@ -8,7 +8,11 @@ import {
 } from "react";
 
 import { useAuth } from "./AuthContext";
-import { getPriceDrops } from "../services/api";
+import {
+  getCommunityNotifications,
+  getPriceDrops,
+  markCommunityNotificationsRead,
+} from "../services/api";
 
 const STORAGE_PREFIX = "pricepounce_read_notifications_";
 const REFRESH_MS = 60 * 1000;
@@ -35,12 +39,13 @@ export function NotificationsProvider({ children }) {
   const { user } = useAuth();
   const storageKey = storageKeyFor(user);
 
-  const [notifications, setNotifications] = useState([]);
+  const [drops, setDrops] = useState([]);
+  const [community, setCommunity] = useState([]);
   const [readIds, setReadIds] = useState(() => loadReadIds(storageKey));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Each account has its own read list
+  // Each account has its own read list for price drops
   useEffect(() => {
     setReadIds(loadReadIds(storageKey));
   }, [storageKey]);
@@ -52,38 +57,64 @@ export function NotificationsProvider({ children }) {
 
     setError(false);
 
-    try {
-      const data = await getPriceDrops(20);
+    const [dropsResult, communityResult] = await Promise.allSettled([
+      getPriceDrops(20),
+      getCommunityNotifications(),
+    ]);
 
-      const items = (data.drops || []).map((drop) => ({
-        id: `drop-${drop.product_id}-${drop.checked_at}`,
-        productId: drop.product_id,
-        productName: drop.product_name,
-        imageUrl: drop.image_url,
-        storeName: drop.store_name,
-        oldPrice: Number(drop.old_price),
-        newPrice: Number(drop.new_price),
-        dropPercent: Number(drop.drop_percent),
-        checkedAt: drop.checked_at,
-      }));
-
-      setNotifications(items);
-    } catch (requestError) {
-      console.error("Notifications loading failed:", requestError);
-      setError(true);
-
-      if (!silent) {
-        setNotifications([]);
-      }
-    } finally {
-      setLoading(false);
+    if (dropsResult.status === "fulfilled") {
+      setDrops(
+        (dropsResult.value.drops || []).map((drop) => ({
+          id: `drop-${drop.product_id}-${drop.checked_at}`,
+          type: "drop",
+          productId: drop.product_id,
+          productName: drop.product_name,
+          imageUrl: drop.image_url,
+          storeName: drop.store_name,
+          oldPrice: Number(drop.old_price),
+          newPrice: Number(drop.new_price),
+          dropPercent: Number(drop.drop_percent),
+          checkedAt: drop.checked_at,
+        }))
+      );
+    } else if (!silent) {
+      setDrops([]);
     }
+
+    if (communityResult.status === "fulfilled") {
+      setCommunity(
+        (communityResult.value.notifications || []).map((item) => ({
+          id: `c-${item.id}`,
+          type: "community",
+          rawId: item.id,
+          kind: item.kind,
+          postId: item.post_id,
+          actor: item.actor,
+          snippet: item.snippet,
+          createdAt: item.created_at,
+          read: item.read,
+        }))
+      );
+    } else if (!silent) {
+      setCommunity([]);
+    }
+
+    if (
+      dropsResult.status === "rejected" &&
+      communityResult.status === "rejected"
+    ) {
+      console.error("Notifications loading failed:", dropsResult.reason);
+      setError(true);
+    }
+
+    setLoading(false);
   }, []);
 
   // Load now, then keep checking
   useEffect(() => {
     if (!user) {
-      setNotifications([]);
+      setDrops([]);
+      setCommunity([]);
       return undefined;
     }
 
@@ -119,30 +150,52 @@ export function NotificationsProvider({ children }) {
     }
   }, [readIds, storageKey]);
 
+  // Replies and comments first, then price drops
+  const notifications = useMemo(
+    () => [...community, ...drops],
+    [community, drops]
+  );
+
+  const isUnread = useCallback(
+    (item) => (item.type === "community" ? !item.read : !readIds.includes(item.id)),
+    [readIds]
+  );
+
   const markRead = useCallback((id) => {
+    if (typeof id === "string" && id.startsWith("c-")) {
+      const rawId = Number(id.slice(2));
+
+      setCommunity((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, read: true } : item))
+      );
+
+      markCommunityNotificationsRead({ ids: [rawId] }).catch(() => {});
+      return;
+    }
+
     setReadIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
   }, []);
 
   const markAllRead = useCallback(() => {
-    setReadIds((prev) => [
-      ...new Set([...prev, ...notifications.map((item) => item.id)]),
-    ]);
-  }, [notifications]);
+    setReadIds((prev) => [...new Set([...prev, ...drops.map((item) => item.id)])]);
+    setCommunity((prev) => prev.map((item) => ({ ...item, read: true })));
+
+    markCommunityNotificationsRead({ all: true }).catch(() => {});
+  }, [drops]);
 
   const value = useMemo(
     () => ({
       notifications,
       readIds,
-      unreadCount: notifications.filter(
-        (item) => !readIds.includes(item.id)
-      ).length,
+      isUnread,
+      unreadCount: notifications.filter(isUnread).length,
       loading,
       error,
       markRead,
       markAllRead,
       reload: () => loadNotifications(),
     }),
-    [notifications, readIds, loading, error, markRead, markAllRead, loadNotifications]
+    [notifications, readIds, isUnread, loading, error, markRead, markAllRead, loadNotifications]
   );
 
   return (

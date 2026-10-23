@@ -12,6 +12,7 @@ import {
   Settings as SettingsIcon,
   Shield,
   Store,
+  Users,
   X,
 } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -24,6 +25,7 @@ import { LegalLinks } from "../ui/LegalLinks";
 const navigation = [
   { label: "Dashboard", path: "/dashboard", icon: LayoutDashboard },
   { label: "Currency", path: "/rates", icon: Coins },
+  { label: "Community", path: "/community", icon: Users },
   { label: "Products", path: "/products", icon: Package, members: true },
   { label: "Watchlist", path: "/watchlist", icon: Bookmark, members: true },
   { label: "Analytics", path: "/analytics", icon: BarChart3, members: true },

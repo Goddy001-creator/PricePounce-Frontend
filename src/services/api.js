@@ -333,4 +333,72 @@ export async function getRates() {
   return response.data;
 }
 
+/* ---------- community ---------- */
+
+export async function getCommunityPosts({ category = "", before = null } = {}) {
+  const response = await api.get("/community/posts", {
+    params: {
+      category: category || undefined,
+      before: before || undefined,
+    },
+  });
+
+  return response.data;
+}
+
+export async function createCommunityPost(payload) {
+  const response = await api.post("/community/posts", payload);
+  return response.data;
+}
+
+export async function getCommunityPost(postId) {
+  const response = await api.get(`/community/posts/${postId}`);
+  return response.data;
+}
+
+export async function addCommunityComment(
+  postId,
+  body,
+  parentId = null,
+  replyTo = null
+) {
+  const response = await api.post(`/community/posts/${postId}/comments`, {
+    body,
+    parent_id: parentId,
+    reply_to: replyTo,
+  });
+
+  return response.data;
+}
+
+export async function getMyCommunityComments(postId) {
+  const response = await api.get(`/community/posts/${postId}/mine`);
+  return response.data;
+}
+
+export async function editCommunityComment(commentId, body) {
+  const response = await api.patch(`/community/comments/${commentId}`, { body });
+  return response.data;
+}
+
+export async function deleteCommunityComment(commentId) {
+  const response = await api.delete(`/community/comments/${commentId}`);
+  return response.data;
+}
+
+export async function getCommunityNotifications() {
+  const response = await api.get("/community/notifications");
+  return response.data;
+}
+
+export async function markCommunityNotificationsRead({ ids = [], all = false }) {
+  const response = await api.post("/community/notifications/read", { ids, all });
+  return response.data;
+}
+
+export async function getStoreList() {
+  const response = await api.get("/store-list");
+  return response.data;
+}
+
 export default api;

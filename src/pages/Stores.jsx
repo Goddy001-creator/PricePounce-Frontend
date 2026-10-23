@@ -1,37 +1,19 @@
 import { CheckCircle2, Package, RefreshCw, Store as StoreIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { getStoreProducts } from "../services/api";
-
-const STORES = [
-  {
-    name: "Jumia",
-    description: "Products tracked from Jumia Nigeria.",
-    initial: "J",
-  },
-  {
-    name: "Konga",
-    description: "Products tracked from Konga Nigeria.",
-    initial: "K",
-  },
-];
+import NotAffiliated from "../components/ui/NotAffiliated";
+import { getStoreList } from "../services/api";
 
 function Stores() {
-  const [storeData, setStoreData] = useState({});
+  const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
 
   async function loadStores() {
     setLoading(true);
 
     try {
-      const results = await Promise.all(
-        STORES.map(async (store) => {
-          const data = await getStoreProducts(store.name);
-          return [store.name, data];
-        })
-      );
-
-      setStoreData(Object.fromEntries(results));
+      const data = await getStoreList();
+      setStores(data.stores || []);
     } catch (error) {
       console.error("Stores loading failed:", error);
     } finally {
@@ -48,9 +30,7 @@ function Stores() {
       <div className="page-heading">
         <div>
           <h1>Stores</h1>
-          <p>
-            View the online stores currently tracked by PricePounce.
-          </p>
+          <p>View the online stores currently listed on PricePounce.</p>
         </div>
 
         <button
@@ -69,66 +49,64 @@ function Stores() {
         </div>
 
         <div>
-          <strong>2 stores tracked</strong>
+          <strong>
+            {stores.length} store{stores.length === 1 ? "" : "s"} listed
+          </strong>
           <span>
-            PricePounce currently collects product data from Jumia and Konga.
+            PricePounce shows public product information from these stores and
+            links back to each one.
           </span>
         </div>
       </div>
 
       {loading ? (
-        <div className="loading-state">
-          Loading store information...
-        </div>
+        <div className="loading-state">Loading store information...</div>
       ) : (
         <div className="stores-grid">
-          {STORES.map((store) => {
-            const data = storeData[store.name];
-            const products = data?.products || [];
-
-            return (
-              <div className="store-card" key={store.name}>
-                <div className="store-card-header">
-                  <div className="store-brand">
-                    <div className="store-logo">
-                      {store.initial}
-                    </div>
-
-                    <div>
-                      <h2>{store.name}</h2>
-                      <span>{store.description}</span>
-                    </div>
-                  </div>
-
-                  <div className="connection-status">
-                    <CheckCircle2 size={16} />
-                    Connected
-                  </div>
-                </div>
-
-                <div className="store-stats">
-                  <div>
-                    <Package size={18} />
-                    <strong>{products.length}</strong>
-                    <span>Products</span>
+          {stores.map((store) => (
+            <div className="store-card" key={store.name}>
+              <div className="store-card-header">
+                <div className="store-brand">
+                  <div className="store-logo">
+                    {store.name.charAt(0).toUpperCase()}
                   </div>
 
                   <div>
-                    <StoreIcon size={18} />
-                    <strong>Active</strong>
-                    <span>Tracking</span>
+                    <h2>{store.name}</h2>
+                    <span>Products listed from {store.name}.</span>
                   </div>
                 </div>
 
-                <div className="store-card-footer">
-                  <span>Data source</span>
-                  <strong>{store.name} Nigeria</strong>
+                <div className="connection-status">
+                  <CheckCircle2 size={16} />
+                  Listed
                 </div>
               </div>
-            );
-          })}
+
+              <div className="store-stats">
+                <div>
+                  <Package size={18} />
+                  <strong>{store.product_count}</strong>
+                  <span>Products</span>
+                </div>
+
+                <div>
+                  <StoreIcon size={18} />
+                  <strong>Active</strong>
+                  <span>Tracking</span>
+                </div>
+              </div>
+
+              <div className="store-card-footer">
+                <span>Data source</span>
+                <strong>{store.name}</strong>
+              </div>
+            </div>
+          ))}
         </div>
       )}
+
+      <NotAffiliated />
     </div>
   );
 }

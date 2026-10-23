@@ -2,6 +2,7 @@ import { Bell, CheckCheck, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { useNotifications } from "../context/NotificationsContext";
+import { initials, timeAgo } from "./Community";
 
 function formatPrice(value) {
   if (value === null || value === undefined) return null;
@@ -11,7 +12,7 @@ function formatPrice(value) {
 function Notifications() {
   const {
     notifications,
-    readIds,
+    isUnread,
     unreadCount,
     loading,
     error,
@@ -25,7 +26,7 @@ function Notifications() {
       <div className="page-heading">
         <div>
           <h1>Notifications</h1>
-          <p>Big price cuts detected across your tracked stores.</p>
+          <p>Replies to your comments and big price cuts on your tracked stores.</p>
         </div>
 
         <button
@@ -76,14 +77,46 @@ function Notifications() {
         ) : (
           <div className="notification-list">
             {notifications.map((item) => {
-              const isUnread = !readIds.includes(item.id);
-              const price = formatPrice(item.price);
+              const unread = isUnread(item);
+
+              if (item.type === "community") {
+                return (
+                  <Link
+                    key={item.id}
+                    to={`/community/${item.postId}`}
+                    className={`notification-item ${unread ? "unread" : ""}`}
+                    onClick={() => markRead(item.id)}
+                  >
+                    <div className="mini-thumbnail">{initials(item.actor)}</div>
+
+                    <div className="notification-body">
+                      <strong>
+                        {item.actor}{" "}
+                        {item.kind === "reply"
+                          ? "replied to your comment"
+                          : "commented on your post"}
+                      </strong>
+                      <span>
+                        {item.snippet} · {timeAgo(item.createdAt)}
+                      </span>
+                    </div>
+
+                    <span className="notification-badge">
+                      {item.kind === "reply" ? "Reply" : "Comment"}
+                    </span>
+
+                    {unread && <span className="notification-unread-dot" />}
+                  </Link>
+                );
+              }
+
+              const price = formatPrice(item.newPrice);
 
               return (
                 <Link
                   key={item.id}
                   to={`/products/${item.productId}`}
-                  className={`notification-item ${isUnread ? "unread" : ""}`}
+                  className={`notification-item ${unread ? "unread" : ""}`}
                   onClick={() => markRead(item.id)}
                 >
                   <div className="mini-thumbnail">
@@ -93,15 +126,15 @@ function Notifications() {
                   <div className="notification-body">
                     <strong>{item.productName}</strong>
                     <span>
-                      {item.discount}% off
+                      {item.dropPercent}% off
                       {item.storeName ? ` at ${item.storeName}` : ""}
                       {price ? ` · now ${price}` : ""}
                     </span>
                   </div>
 
-                  <span className="notification-badge">-{item.discount}%</span>
+                  <span className="notification-badge">-{item.dropPercent}%</span>
 
-                  {isUnread && <span className="notification-unread-dot" />}
+                  {unread && <span className="notification-unread-dot" />}
                 </Link>
               );
             })}

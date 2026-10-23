@@ -12,6 +12,8 @@ import Terms from "./pages/legal/Terms";
 import Privacy from "./pages/legal/Privacy";
 import Refunds from "./pages/legal/Refunds";
 import Rates from "./pages/Rates";
+import Community from "./pages/Community";
+import CommunityPost from "./pages/CommunityPost";
 
 import About from "./pages/About";
 import Alerts from "./pages/Alerts";
@@ -85,6 +87,8 @@ function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/about" element={<About />} />
           <Route path="/rates" element={<Rates />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/community/:postId" element={<CommunityPost />} />
 
           {/* Members only: visitors see the sign-up gate */}
           <Route element={<RequireAccount />}>
