@@ -6,11 +6,14 @@ import { useAuth } from "../context/AuthContext";
 import {
   addCommunityComment,
   deleteCommunityComment,
+  deleteCommunityPost,
   editCommunityComment,
+  editCommunityPost,
   getCommunityPost,
   getMyCommunityComments,
 } from "../services/api";
-import { initials, naira, timeAgo } from "./Community";
+import { CATEGORIES, WHEN, initials, naira, timeAgo } from "./Community";
+import ReportButton from "../components/ui/ReportButton";
 
 function CommentBox({
   postId,
@@ -185,6 +188,10 @@ function Comment({
                 Reply
               </button>
 
+              {!mine && (
+                <ReportButton targetType="comment" targetId={comment.id} />
+              )}
+
               {mine && !confirming && (
                 <>
                   <button type="button" className="cm-link" onClick={onEdit}>
@@ -223,6 +230,144 @@ function Comment({
   );
 }
 
+function EditPostForm({ post, when: currentWhen, onDone, onCancel }) {
+  const [item, setItem] = useState(post.item);
+  const [price, setPrice] = useState(String(post.price));
+  const [location, setLocation] = useState(post.location);
+  const [category, setCategory] = useState(post.category);
+  const [when, setWhen] = useState(currentWhen);
+  const [note, setNote] = useState(post.note || "");
+  const [self, setSelf] = useState(post.self_reported);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  async function submit(event) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+
+    try {
+      await editCommunityPost(post.id, {
+        item,
+        price: parseFloat(String(price).replace(/,/g, "")),
+        location,
+        category,
+        when,
+        note,
+        self_reported: self,
+      });
+      onDone();
+    } catch (err) {
+      setError(err.response?.data?.error || "Could not save your changes.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="cm-form" onSubmit={submit}>
+      <div className="cm-form-title">Edit your post</div>
+
+      <label className="cm-field">
+        What did you buy?
+        <input
+          type="text"
+          value={item}
+          maxLength={120}
+          onChange={(e) => setItem(e.target.value)}
+          required
+        />
+      </label>
+
+      <div className="cm-row">
+        <label className="cm-field">
+          Price paid (₦)
+          <input
+            type="text"
+            inputMode="decimal"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            required
+          />
+        </label>
+
+        <label className="cm-field">
+          Where
+          <input
+            type="text"
+            value={location}
+            maxLength={120}
+            onChange={(e) => setLocation(e.target.value)}
+            required
+          />
+        </label>
+      </div>
+
+      <div className="cm-field">
+        Category
+        <div className="cm-chips">
+          {CATEGORIES.map((name) => (
+            <button
+              type="button"
+              key={name}
+              className={`cm-chip ${category === name ? "on" : ""}`}
+              onClick={() => setCategory(name)}
+            >
+              {name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="cm-field">
+        When
+        <div className="cm-when">
+          {WHEN.map((option) => (
+            <button
+              type="button"
+              key={option.value}
+              className={`cm-when-btn ${when === option.value ? "on" : ""}`}
+              onClick={() => setWhen(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <label className="cm-field">
+        Note (optional)
+        <textarea
+          rows={2}
+          value={note}
+          maxLength={500}
+          onChange={(e) => setNote(e.target.value)}
+        />
+      </label>
+
+      <label className="cm-check">
+        <input
+          type="checkbox"
+          checked={self}
+          onChange={(e) => setSelf(e.target.checked)}
+        />
+        I paid or saw this price myself
+      </label>
+
+      {error && <div className="cm-error">{error}</div>}
+
+      <div className="cm-form-foot">
+        <button type="button" className="cm-link cm-cancel" onClick={onCancel}>
+          Cancel
+        </button>
+        <button type="submit" className="cm-submit" disabled={busy}>
+          {busy ? "Saving..." : "Save changes"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 function CommunityPost() {
   const { postId } = useParams();
   const { user } = useAuth();
@@ -234,6 +379,10 @@ function CommunityPost() {
   const [replyTo, setReplyTo] = useState(null);
   const [editingId, setEditingId] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
+  const navigate = useNavigate();
+  const [postMine, setPostMine] = useState(null);
+  const [editingPost, setEditingPost] = useState(false);
+  const [confirmPostDelete, setConfirmPostDelete] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -241,16 +390,18 @@ function CommunityPost() {
       setPost(data.post);
       setComments(data.comments);
       setError("");
-
       if (user) {
         try {
           const mine = await getMyCommunityComments(postId);
           setMineIds(mine.comments);
+          setPostMine(mine.post || null);
         } catch {
           setMineIds([]);
+          setPostMine(null);
         }
       } else {
         setMineIds([]);
+        setPostMine(null);
       }
     } catch (err) {
       setError(
@@ -281,6 +432,16 @@ function CommunityPost() {
       load();
     } catch (err) {
       setError(err.response?.data?.error || "Could not delete the comment.");
+    }
+  }
+
+  async function removePost() {
+    try {
+      await deleteCommunityPost(post.id);
+      navigate("/community");
+    } catch (err) {
+      setConfirmPostDelete(false);
+      setError(err.response?.data?.error || "Could not delete the post.");
     }
   }
 
@@ -348,32 +509,97 @@ function CommunityPost() {
 
       {post && (
         <>
-          <article className="cm-card cm-card-big">
-            <div className="cm-card-head">
-              <div className={`cm-avatar cm-av-${post.id % 4}`}>
-                {initials(post.author)}
+          {editingPost && postMine ? (
+            <EditPostForm
+              post={post}
+              when={postMine.when}
+              onCancel={() => setEditingPost(false)}
+              onDone={() => {
+                setEditingPost(false);
+                load();
+              }}
+            />
+          ) : (
+            <article className="cm-card cm-card-big">
+              <div className="cm-card-head">
+                <div className={`cm-avatar cm-av-${post.id % 4}`}>
+                  {initials(post.author)}
+                </div>
+                <div className="cm-card-who">
+                  <div className="cm-author">{post.author}</div>
+                  <div className="cm-meta">
+                    {timeAgo(post.created_at)}
+                    {post.edited && <span className="cm-edited">edited</span>}
+                  </div>
+                </div>
+                <span className="cm-badge">{post.category}</span>
               </div>
-              <div className="cm-card-who">
-                <div className="cm-author">{post.author}</div>
-                <div className="cm-meta">{timeAgo(post.created_at)}</div>
+
+              <h1 className="cm-item cm-item-big">{post.item}</h1>
+              <div className="cm-price cm-price-big">{naira(post.price)}</div>
+
+              <div className="cm-place">
+                <MapPin size={14} />
+                {post.location}
               </div>
-              <span className="cm-badge">{post.category}</span>
-            </div>
 
-            <h1 className="cm-item cm-item-big">{post.item}</h1>
-            <div className="cm-price cm-price-big">{naira(post.price)}</div>
+              {post.note && <div className="cm-note">{post.note}</div>}
 
-            <div className="cm-place">
-              <MapPin size={14} />
-              {post.location}
-            </div>
+              {post.self_reported && (
+                <div className="cm-seen">Paid or seen by the poster</div>
+              )}
 
-            {post.note && <div className="cm-note">{post.note}</div>}
+              <div className="cm-actions">
+                {postMine?.mine ? (
+                  <>
+                    {postMine.editable && (
+                      <button
+                        type="button"
+                        className="cm-link"
+                        onClick={() => setEditingPost(true)}
+                      >
+                        Edit
+                      </button>
+                    )}
 
-            {post.self_reported && (
-              <div className="cm-seen">Paid or seen by the poster</div>
-            )}
-          </article>
+                    {!confirmPostDelete ? (
+                      <button
+                        type="button"
+                        className="cm-link cm-danger"
+                        onClick={() => setConfirmPostDelete(true)}
+                      >
+                        Delete
+                      </button>
+                    ) : (
+                      <span className="cm-confirm">
+                        Delete this post and its comments?
+                        <button
+                          type="button"
+                          className="cm-link cm-danger"
+                          onClick={removePost}
+                        >
+                          Yes
+                        </button>
+                        <button
+                          type="button"
+                          className="cm-link"
+                          onClick={() => setConfirmPostDelete(false)}
+                        >
+                          No
+                        </button>
+                      </span>
+                    )}
+
+                    {!postMine.editable && (
+                      <span className="cm-meta">Editing closes after 24 hours</span>
+                    )}
+                  </>
+                ) : (
+                  <ReportButton targetType="post" targetId={post.id} />
+                )}
+              </div>
+            </article>
+          )}
 
           <CommentBox
             postId={post.id}

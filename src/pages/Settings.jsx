@@ -15,6 +15,7 @@ import {
   downloadAccountData,
   downloadAccountPdf,
   getPreferences,
+  getStoreList,
   savePreferences,
 } from "../services/api";
 import {
@@ -55,11 +56,16 @@ function Settings() {
   const [dataBusy, setDataBusy] = useState(false);
   const [emailAlerts, setEmailAlerts] = useState(null);
   const [emailAlertsBusy, setEmailAlertsBusy] = useState(false);
+  const [storeNames, setStoreNames] = useState([]);
 
   useEffect(() => {
     getPreferences()
       .then((data) => setEmailAlerts(data.email_alerts))
       .catch(() => {});
+
+    getStoreList()
+      .then((data) => setStoreNames((data.stores || []).map((s) => s.name)))
+      .catch(() => setStoreNames(["Jumia", "Konga"]));
   }, []);
 
   async function handleEmailAlertsChange(event) {
@@ -296,8 +302,9 @@ function Settings() {
               }
             >
               <option>All Stores</option>
-              <option>Jumia</option>
-              <option>Konga</option>
+              {storeNames.map((store) => (
+                <option key={store}>{store}</option>
+              ))}
             </select>
           </div>
         </section>

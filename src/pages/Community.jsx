@@ -5,8 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { createCommunityPost, getCommunityPosts } from "../services/api";
 
-const CATEGORIES = ["Groceries", "Currency", "Phones", "Fuel and gas", "More"];
-const WHEN = [
+export const CATEGORIES = ["Groceries", "Currency", "Phones", "Fuel and gas", "More"];
+export const WHEN = [
   { value: "today", label: "Today" },
   { value: "yesterday", label: "Yesterday" },
   { value: "earlier", label: "Earlier" },
@@ -56,7 +56,10 @@ function PostCard({ post }) {
         <div className={`cm-avatar cm-av-${tone}`}>{initials(post.author)}</div>
         <div className="cm-card-who">
           <div className="cm-author">{post.author}</div>
-          <div className="cm-meta">{timeAgo(post.created_at)}</div>
+          <div className="cm-meta">
+            {timeAgo(post.created_at)}
+            {post.edited && <span className="cm-edited">edited</span>}
+          </div>
         </div>
         <span className="cm-badge">{post.category}</span>
       </div>

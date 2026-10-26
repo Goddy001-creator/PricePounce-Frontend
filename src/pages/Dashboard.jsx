@@ -28,6 +28,7 @@ import {
   getLastUpdate,
   getPriceTrends,
   getProducts,
+  getStoreList,
   getStoreSummaries,
   getPreviewProducts,
 } from "../services/api";
@@ -105,6 +106,7 @@ function Dashboard() {
   const [summary, setSummary] = useState(null);
   const [products, setProducts] = useState([]);
   const [stores, setStores] = useState([]);
+  const [storeList, setStoreList] = useState([]);
   const [lastUpdate, setLastUpdate] = useState(null);
   const [trendPoints, setTrendPoints] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -129,11 +131,18 @@ function Dashboard() {
       setLoading(false);
     }
 
-    const [storesRes, updateRes, trendsRes] = await Promise.allSettled([
+    const [storesRes, updateRes, trendsRes, listRes] = await Promise.allSettled([
       getStoreSummaries(),
       getLastUpdate(),
       getPriceTrends(TREND_DAYS),
+      getStoreList(),
     ]);
+
+    if (listRes.status === "fulfilled") {
+      setStoreList(listRes.value.stores || []);
+    } else {
+      console.error("Store list loading failed:", listRes.reason);
+    }
 
     if (storesRes.status === "fulfilled") {
       setStores(storesRes.value.stores || []);
@@ -169,18 +178,45 @@ function Dashboard() {
 
   const recentProducts = products.slice(0, 5);
 
-  const totalStoreProducts = stores.reduce(
+  // Show the top 3 stores and group the rest, so the chart stays readable
+  const sortedStores = [...stores].sort(
+    (a, b) => Number(b.product_count) - Number(a.product_count)
+  );
+
+  const groupedStores =
+    sortedStores.length <= 4
+      ? sortedStores
+      : [
+          ...sortedStores.slice(0, 3),
+          {
+            store_name: "Other stores",
+            product_count: sortedStores
+              .slice(3)
+              .reduce((sum, store) => sum + Number(store.product_count), 0),
+          },
+        ];
+
+  const totalStoreProducts = groupedStores.reduce(
     (sum, store) => sum + Number(store.product_count),
     0
   );
 
-  const donutData = stores.map((store) => ({
+  const donutData = groupedStores.map((store) => ({
     name: store.store_name,
     value: Number(store.product_count),
     percent: totalStoreProducts
       ? Math.round((Number(store.product_count) / totalStoreProducts) * 100)
       : 0,
   }));
+
+  const storeNames = storeList.map((store) => store.name);
+  const storeCount = storeNames.length || stores.length;
+  const storeSubtitle =
+    storeNames.length === 0
+      ? "Online stores"
+      : storeNames.length <= 3
+        ? storeNames.join(", ")
+        : `${storeNames.slice(0, 2).join(", ")} +${storeNames.length - 2} more`;
 
   const trendSeries = buildTrendSeries(trendPoints, TREND_DAYS);
   const hasTrendData = trendSeries.some((point) => point.change !== null);
@@ -193,8 +229,7 @@ function Dashboard() {
           <p>
             {user
               ? "Welcome back! Here's what's happening with your prices today."
-              : "Live prices from Jumia and Konga. Sign up free to track products and get price alerts."}
-          </p>
+              : "Live prices from Nigerian online stores. Sign up free to track products and get price alerts."}          </p>
         </div>
       </div>
 
@@ -238,8 +273,8 @@ function Dashboard() {
 
             <StatCard
               title="Stores Tracked"
-              value="2"
-              subtitle="Jumia, Konga"
+              value={String(storeCount)}
+              subtitle={storeSubtitle}
               icon={<Store size={19} />}
               accent="purple"
             />

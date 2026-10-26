@@ -3,11 +3,13 @@ import { useSearchParams } from "react-router-dom";
 import AdminAudit from "./AdminAudit";
 import AdminOverview from "./AdminOverview";
 import AdminUsers from "./AdminUsers";
+import AdminCommunity from "./AdminCommunity";
 
 const TABS = [
   { key: "overview", label: "Overview" },
   { key: "users", label: "Users" },
   { key: "audit", label: "Audit log" },
+  { key: "community", label: "Community" },
 ];
 
 function Admin() {
@@ -48,6 +50,7 @@ function Admin() {
 
       {active === "overview" && <AdminOverview />}
       {active === "users" && <AdminUsers />}
+      {active === "community" && <AdminCommunity />}
       {active === "audit" && <AdminAudit />}
     </div>
   );

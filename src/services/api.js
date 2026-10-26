@@ -401,4 +401,40 @@ export async function getStoreList() {
   return response.data;
 }
 
+export async function reportCommunity(targetType, targetId, reason, details) {
+  const response = await api.post("/community/report", {
+    target_type: targetType,
+    target_id: targetId,
+    reason,
+    details,
+  });
+  return response.data;
+}
+
+export async function getCommunityReports(status = "open", page = 1) {
+  const response = await api.get("/admin/community/reports", {
+    params: { status, page },
+  });
+  return response.data;
+}
+
+export async function actOnCommunityReport(targetType, targetId, action) {
+  const response = await api.post("/admin/community/action", {
+    target_type: targetType,
+    target_id: targetId,
+    action,
+  });
+  return response.data;
+}
+
+export async function editCommunityPost(postId, payload) {
+  const response = await api.patch(`/community/posts/${postId}`, payload);
+  return response.data;
+}
+
+export async function deleteCommunityPost(postId) {
+  const response = await api.delete(`/community/posts/${postId}`);
+  return response.data;
+}
+
 export default api;

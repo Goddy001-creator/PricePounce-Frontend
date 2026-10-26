@@ -3973,3 +3973,76 @@ a.cm-count:hover { color: #7c5cf5; opacity: 1; }
   color: inherit;
   text-decoration: underline;
 }
+
+.cm-actions { flex-wrap: wrap; }
+
+.cm-report {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  flex-basis: 100%;
+  margin-top: 8px;
+}
+
+.cm-report select,
+.cm-report input {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(128, 128, 128, 0.4);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 13px;
+}
+
+.cm-report select option { color: #111; background: #fff; }
+.cm-report input { flex: 1; min-width: 160px; }
+
+.cm-report-send {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cm-report-send:disabled { opacity: 0.6; }
+.cm-report-done { font-size: 13px; opacity: 0.7; }
+.cm-report-error { font-size: 13px; color: #e5484d; }
+
+.mod-wrap { display: grid; gap: 14px; }
+.mod-switch { max-width: 320px; }
+.mod-card { padding: 16px; display: grid; gap: 10px; }
+.mod-empty { padding: 28px; text-align: center; opacity: 0.8; }
+.mod-error { color: #e5484d; }
+
+.mod-top { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+.mod-type,
+.mod-count,
+.mod-reason,
+.mod-state {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(128, 128, 128, 0.18);
+}
+
+.mod-type { text-transform: capitalize; }
+.mod-count { background: rgba(229, 72, 77, 0.16); color: #e5484d; }
+.mod-state.hidden { background: rgba(229, 72, 77, 0.16); color: #e5484d; }
+.mod-state.shown { background: rgba(34, 160, 90, 0.16); color: #22a05a; }
+
+.mod-content { display: grid; gap: 4px; line-height: 1.5; }
+.mod-author { font-size: 12.5px; opacity: 0.7; }
+.mod-notes { margin: 0; padding-left: 18px; font-size: 13px; opacity: 0.85; }
+.mod-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.mod-hint { font-size: 12.5px; opacity: 0.7; }
+.mod-view { font-size: 13px; text-decoration: underline; color: inherit; opacity: 0.8; }
+
+.mod-pager { display: flex; gap: 12px; align-items: center; justify-content: center; }
